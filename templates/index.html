@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NaC API - Cisco Network as Code</title>
+
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Tabulator CSS -->
+    <link href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator_bootstrap5.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="text-center mb-2">
+                    <img src="{{ url_for('static', filename='images/Cisco_Logo_no_TM_White-RGB_264px.png') }}" alt="Cisco Systems Inc." class="sidebar-logo mb-2">
+                </div>
+                <h4 class="mb-0 text-center">NaC API</h4>
+                <p class="text-center mb-0 small text-white-50">Network as Code</p>
+            </div>
+            <ul class="sidebar-nav">
+                <!-- NaC Parent Node -->
+                <li class="sidebar-item">
+                    <a href="#nacMenu" class="sidebar-parent" data-bs-toggle="collapse" aria-expanded="true">
+                        <i class="bi bi-layer-forward"></i>
+                        <span>NaC YAML</span>
+                        <i class="bi bi-chevron-down sidebar-arrow"></i>
+                    </a>
+                    <ul class="collapse show sidebar-submenu" id="nacMenu">
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link active" data-page="main" data-parent="nac">
+                                <i class="bi bi-house-door"></i>
+                                <span>Main</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" data-page="fabric" data-parent="nac">
+                                <i class="bi bi-grid-3x3"></i>
+                                <span>Fabric</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" data-page="vrf" data-parent="nac">
+                                <i class="bi bi-bezier2"></i>
+                                <span>VRF</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" data-page="network" data-parent="nac">
+                                <i class="bi bi-diagram-3"></i>
+                                <span>Network</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" data-page="interfaces" data-parent="nac">
+                                <i class="bi bi-hdd-network"></i>
+                                <span>Interfaces</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- Nexus Dashboard Parent Node -->
+                <li class="sidebar-item">
+                    <a href="#nexusMenu" class="sidebar-parent" data-bs-toggle="collapse" aria-expanded="false">
+                        <i class="bi bi-hdd-rack"></i>
+                        <span>Nexus Dashboard</span>
+                        <i class="bi bi-chevron-down sidebar-arrow"></i>
+                    </a>
+                    <ul class="collapse sidebar-submenu" id="nexusMenu">
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" data-page="nexus-main" data-parent="nexus">
+                                <i class="bi bi-house-door"></i>
+                                <span>Main</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" data-page="nexus-switches" data-parent="nexus">
+                                <i class="bi bi-router"></i>
+                                <span>Switches</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" data-page="nexus-fabric" data-parent="nexus">
+                                <i class="bi bi-grid-3x3"></i>
+                                <span>Fabric</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" data-page="nexus-vrf" data-parent="nexus">
+                                <i class="bi bi-bezier2"></i>
+                                <span>VRF</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" data-page="nexus-network" data-parent="nexus">
+                                <i class="bi bi-diagram-3"></i>
+                                <span>Network</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" data-page="nexus-interfaces" data-parent="nexus">
+                                <i class="bi bi-hdd-network"></i>
+                                <span>Interfaces</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- Admin Section (Separator) -->
+                <li class="sidebar-divider"></li>
+                <li class="sidebar-item">
+                    <a href="#" class="sidebar-link" data-page="admin" data-parent="admin">
+                        <i class="bi bi-gear"></i>
+                        <span>Admin</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <div class="main">
+            <!-- Top Navbar -->
+            <nav class="navbar navbar-expand navbar-light bg-light border-bottom">
+                <div class="container-fluid">
+                    <button class="btn btn-primary" id="sidebarToggle" type="button">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <div class="ms-auto">
+                        <span class="navbar-text">Welcome, User</span>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <div class="container-fluid mt-4">
+                <!-- Main Landing Page -->
+                <div id="page-main" class="page-content active">
+                    <div class="page-header mb-4">
+                        <h2><i class="bi bi-house-door me-2"></i>Network as Code Dashboard</h2>
+                        <p class="text-muted">Comprehensive network infrastructure management and automation</p>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card shadow-sm border-start border-primary border-4">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <p class="text-muted mb-1 small">Total Fabrics</p>
+                                            <h3 class="mb-0">3</h3>
+                                        </div>
+                                        <div class="text-primary">
+                                            <i class="bi bi-grid-3x3" style="font-size: 2rem;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card shadow-sm border-start border-success border-4">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <p class="text-muted mb-1 small">VRF Instances</p>
+                                            <h3 class="mb-0">12</h3>
+                                        </div>
+                                        <div class="text-success">
+                                            <i class="bi bi-bezier2" style="font-size: 2rem;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card shadow-sm border-start border-info border-4">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <p class="text-muted mb-1 small">Network Devices</p>
+                                            <h3 class="mb-0">48</h3>
+                                        </div>
+                                        <div class="text-info">
+                                            <i class="bi bi-diagram-3" style="font-size: 2rem;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card shadow-sm border-start border-warning border-4">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <p class="text-muted mb-1 small">Total Interfaces</p>
+                                            <h3 class="mb-0">1,248</h3>
+                                        </div>
+                                        <div class="text-warning">
+                                            <i class="bi bi-hdd-network" style="font-size: 2rem;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Health -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-lg-8">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="bi bi-activity me-2"></i>Infrastructure Health</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <h6 class="text-muted mb-3">Fabric Health</h6>
+                                            <div class="mb-2">
+                                                <div class="d-flex justify-content-between mb-1">
+                                                    <small>DC1-Fabric</small>
+                                                    <small class="text-success fw-bold">98%</small>
+                                                </div>
+                                                <div class="progress" style="height: 8px;">
+                                                    <div class="progress-bar bg-success" style="width: 98%"></div>
+                                                </div>
+                                            </div>
+                                            <div class="mb-2">
+                                                <div class="d-flex justify-content-between mb-1">
+                                                    <small>DC2-Fabric</small>
+                                                    <small class="text-success fw-bold">96%</small>
+                                                </div>
+                                                <div class="progress" style="height: 8px;">
+                                                    <div class="progress-bar bg-success" style="width: 96%"></div>
+                                                </div>
+                                            </div>
+                                            <div class="mb-2">
+                                                <div class="d-flex justify-content-between mb-1">
+                                                    <small>Edge-Fabric</small>
+                                                    <small class="text-warning fw-bold">87%</small>
+                                                </div>
+                                                <div class="progress" style="height: 8px;">
+                                                    <div class="progress-bar bg-warning" style="width: 87%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <h6 class="text-muted mb-3">System Status</h6>
+                                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                                <span class="small">Configuration Sync</span>
+                                                <span class="badge bg-success">100%</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                                <span class="small">Policy Compliance</span>
+                                                <span class="badge bg-success">98%</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                                <span class="small">Underlay BGP</span>
+                                                <span class="badge bg-warning">95%</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="small">Overlay VXLAN</span>
+                                                <span class="badge bg-success">99%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0"><i class="bi bi-exclamation-circle me-2"></i>Active Alerts</h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="list-group list-group-flush">
+                                        <div class="list-group-item">
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge bg-warning me-2">Warning</span>
+                                                <small>BGP flap on Edge-Fabric</small>
+                                            </div>
+                                            <small class="text-muted">2 hours ago</small>
+                                        </div>
+                                        <div class="list-group-item">
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge bg-info me-2">Info</span>
+                                                <small>Config drift detected</small>
+                                            </div>
+                                            <small class="text-muted">5 hours ago</small>
+                                        </div>
+                                        <div class="list-group-item">
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge bg-success me-2">Resolved</span>
+                                                <small>Interface recovery</small>
+                                            </div>
+                                            <small class="text-muted">8 hours ago</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <a href="#" class="btn btn-sm btn-outline-primary w-100">View All Alerts</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-12">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0"><i class="bi bi-lightning-charge me-2"></i>Quick Actions</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <button class="btn btn-outline-primary w-100">
+                                                <i class="bi bi-plus-circle me-2"></i>Create Fabric
+                                            </button>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <button class="btn btn-outline-success w-100">
+                                                <i class="bi bi-plus-circle me-2"></i>Add VRF
+                                            </button>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <button class="btn btn-outline-info w-100">
+                                                <i class="bi bi-arrow-repeat me-2"></i>Sync Configuration
+                                            </button>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <button class="btn btn-outline-warning w-100">
+                                                <i class="bi bi-gear me-2"></i>Deploy Policy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-secondary text-white">
+                                    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Activity</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="recentActivityTable"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Network Page -->
+                <div id="page-network" class="page-content">
+                    <div class="page-header mb-4">
+                        <h2><i class="bi bi-diagram-3 me-2"></i>Network Management</h2>
+                        <p class="text-muted">Configure and manage network infrastructure</p>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="bi bi-router text-primary me-2"></i>Devices</h5>
+                                    <p class="card-text">Manage network devices and switches</p>
+                                    <button class="btn btn-primary btn-sm">View Devices</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="bi bi-diagram-2 text-success me-2"></i>Topology</h5>
+                                    <p class="card-text">View network topology and connections</p>
+                                    <button class="btn btn-success btn-sm">View Topology</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="bi bi-speedometer text-warning me-2"></i>Monitoring</h5>
+                                    <p class="card-text">Real-time network monitoring</p>
+                                    <button class="btn btn-warning btn-sm">View Stats</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm mt-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Network Overview</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="text-center p-3">
+                                        <h3 class="text-primary">24</h3>
+                                        <p class="text-muted mb-0">Total Devices</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center p-3">
+                                        <h3 class="text-success">22</h3>
+                                        <p class="text-muted mb-0">Online</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center p-3">
+                                        <h3 class="text-warning">2</h3>
+                                        <p class="text-muted mb-0">Warning</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center p-3">
+                                        <h3 class="text-danger">0</h3>
+                                        <p class="text-muted mb-0">Offline</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fabric Page -->
+                <div id="page-fabric" class="page-content">
+                    <div class="page-header mb-4">
+                        <h2><i class="bi bi-grid-3x3 me-2"></i>Fabric Management</h2>
+                        <p class="text-muted">Manage network fabric configurations and policies</p>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="bi bi-building me-2"></i>Fabric Overview</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-6 text-center p-3 border-end">
+                                            <h4 class="text-primary mb-1">3</h4>
+                                            <small class="text-muted">Active Fabrics</small>
+                                        </div>
+                                        <div class="col-6 text-center p-3">
+                                            <h4 class="text-success mb-1">48</h4>
+                                            <small class="text-muted">Total Switches</small>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-6 text-center p-3 border-end">
+                                            <h4 class="text-info mb-1">12</h4>
+                                            <small class="text-muted">Policies</small>
+                                        </div>
+                                        <div class="col-6 text-center p-3">
+                                            <h4 class="text-warning mb-1">5</h4>
+                                            <small class="text-muted">Templates</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0"><i class="bi bi-cpu me-2"></i>Fabric Health</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="text-muted">Overall Health</span>
+                                            <strong class="text-success">98%</strong>
+                                        </div>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 98%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="text-muted">Configuration Sync</span>
+                                            <strong class="text-success">100%</strong>
+                                        </div>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-0">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="text-muted">Underlay Status</span>
+                                            <strong class="text-warning">95%</strong>
+                                        </div>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar bg-warning" role="progressbar" style="width: 95%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Fabric List</h5>
+                            <button class="btn btn-light btn-sm"><i class="bi bi-plus-circle me-1"></i>Create Fabric</button>
+                        </div>
+                        <div class="card-body">
+                            <div id="fabricListTable"></div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-warning text-dark">
+                                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Recent Alerts</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="list-group list-group-flush">
+                                        <div class="list-group-item px-0">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <small class="text-muted">2 hours ago</small>
+                                                    <p class="mb-0">Underlay link flap detected in DC1-Fabric</p>
+                                                </div>
+                                                <span class="badge bg-warning">Warning</span>
+                                            </div>
+                                        </div>
+                                        <div class="list-group-item px-0">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <small class="text-muted">5 hours ago</small>
+                                                    <p class="mb-0">Configuration drift in Edge-Fabric</p>
+                                                </div>
+                                                <span class="badge bg-info">Info</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-secondary text-white">
+                                    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Changes</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="list-group list-group-flush">
+                                        <div class="list-group-item px-0">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <small class="text-muted">1 hour ago</small>
+                                                    <p class="mb-0">Policy update deployed to DC1-Fabric</p>
+                                                </div>
+                                                <span class="badge bg-success">Success</span>
+                                            </div>
+                                        </div>
+                                        <div class="list-group-item px-0">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <small class="text-muted">3 hours ago</small>
+                                                    <p class="mb-0">New switch added to DC2-Fabric</p>
+                                                </div>
+                                                <span class="badge bg-success">Success</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VRF Page -->
+                <div id="page-vrf" class="page-content">
+                    <div class="page-header mb-4">
+                        <h2><i class="bi bi-bezier2 me-2"></i>VRF Management</h2>
+                        <p class="text-muted">Virtual Routing and Forwarding configuration</p>
+                    </div>
+
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">VRF Instances</h5>
+                            <button class="btn btn-light btn-sm"><i class="bi bi-plus-circle me-1"></i>Add VRF</button>
+                        </div>
+                        <div class="card-body">
+                            <div id="vrfInstancesTable"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interfaces Page -->
+                <div id="page-interfaces" class="page-content">
+                    <div class="page-header mb-4">
+                        <h2><i class="bi bi-hdd-network me-2"></i>Interface Configuration</h2>
+                        <p class="text-muted">Manage network interfaces and port configurations</p>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Interface List</h5>
+                                    <button class="btn btn-light btn-sm"><i class="bi bi-plus-circle me-1"></i>Add Interface</button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <input type="text" class="form-control" placeholder="Search interfaces...">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <select class="form-select">
+                                                <option>All Types</option>
+                                                <option>Ethernet</option>
+                                                <option>Loopback</option>
+                                                <option>VLAN</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <select class="form-select">
+                                                <option>All Status</option>
+                                                <option>Up</option>
+                                                <option>Down</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div id="interfaceListTable"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nexus Fabric Page -->
+                <div id="page-nexus-fabric" class="page-content">
+                    <div class="page-header mb-4">
+                        <h2><i class="bi bi-grid-3x3 me-2"></i>Nexus Dashboard Fabric Details</h2>
+                        <p class="text-muted">Configuration and status of the fabric</p>
+                    </div>
+
+                    <div id="nexusFabricContent">
+                        <!-- Fabric details will be loaded here dynamically -->
+                    </div>
+                </div>
+
+                <!-- Nexus Switches Page -->
+                <div id="page-nexus-switches" class="page-content">
+                    <div class="page-header mb-4">
+                        <h2><i class="bi bi-router me-2"></i>Nexus Dashboard Switches</h2>
+                        <p class="text-muted">Inventory of switches in the configured fabric</p>
+                    </div>
+
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="bi bi-router me-2"></i>Fabric Switches Inventory</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="nexusSwitchesTable"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nexus VRF Page -->
+                <div id="page-nexus-vrf" class="page-content">
+                    <div class="page-header mb-4">
+                        <h2><i class="bi bi-bezier2 me-2"></i>Nexus Dashboard VRFs</h2>
+                        <p class="text-muted">Virtual Routing and Forwarding instances in the configured fabric</p>
+                    </div>
+
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="bi bi-bezier2 me-2"></i>Fabric VRF Inventory</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="nexusVRFsTable"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nexus Network Page -->
+                <div id="page-nexus-network" class="page-content">
+                    <div class="page-header mb-4">
+                        <h2><i class="bi bi-diagram-3 me-2"></i>Nexus Dashboard Networks</h2>
+                        <p class="text-muted">Network segments in the configured fabric</p>
+                    </div>
+
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Fabric Network Inventory</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="nexusNetworksTable"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Page -->
+                <div id="page-admin" class="page-content">
+                    <div class="page-header mb-4">
+                        <h2><i class="bi bi-gear me-2"></i>Admin Configuration</h2>
+                        <p class="text-muted">Configure API keys and system settings</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-8 mx-auto">
+                            <!-- API Keys Configuration -->
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="bi bi-key me-2"></i>API Keys Configuration</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="apiKeysForm">
+                                        <!-- NaC API Key -->
+                                        <div class="mb-4">
+                                            <label for="nacApiKey" class="form-label fw-bold">
+                                                <i class="bi bi-layer-forward text-primary me-2"></i>NaC API Key
+                                            </label>
+                                            <div class="input-group">
+                                                <input type="password" class="form-control" id="nacApiKey" name="nac_api_key" placeholder="Enter NaC API Key">
+                                                <button class="btn btn-outline-secondary" type="button" id="toggleNacKey">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                            </div>
+                                            <small class="form-text text-muted">API key for Network as Code operations</small>
+                                        </div>
+
+                                        <!-- Nexus Dashboard API Key -->
+                                        <div class="mb-4">
+                                            <label for="nexusApiKey" class="form-label fw-bold">
+                                                <i class="bi bi-hdd-rack text-info me-2"></i>Nexus Dashboard API Key
+                                            </label>
+                                            <div class="input-group">
+                                                <input type="password" class="form-control" id="nexusApiKey" name="nexus_api_key" placeholder="Enter Nexus Dashboard API Key">
+                                                <button class="btn btn-outline-secondary" type="button" id="toggleNexusKey">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                            </div>
+                                            <small class="form-text text-muted">API key for Nexus Dashboard integration</small>
+                                        </div>
+
+                                        <!-- Nexus Dashboard URL -->
+                                        <div class="mb-4">
+                                            <label for="nexusUrl" class="form-label fw-bold">
+                                                <i class="bi bi-globe text-success me-2"></i>Nexus Dashboard URL
+                                            </label>
+                                            <input type="url" class="form-control" id="nexusUrl" name="nexus_url" placeholder="https://nexus-dashboard.example.com">
+                                            <small class="form-text text-muted">Base URL for Nexus Dashboard API</small>
+                                        </div>
+
+                                        <!-- Nexus Dashboard Username -->
+                                        <div class="mb-4">
+                                            <label for="nexusUsername" class="form-label fw-bold">
+                                                <i class="bi bi-person text-warning me-2"></i>Nexus Dashboard Username
+                                            </label>
+                                            <input type="text" class="form-control" id="nexusUsername" name="nexus_username" placeholder="Enter username">
+                                            <small class="form-text text-muted">Username for Nexus Dashboard authentication</small>
+                                        </div>
+
+                                        <!-- Nexus Dashboard Fabric Name -->
+                                        <div class="mb-4">
+                                            <label for="nexusFabricName" class="form-label fw-bold">
+                                                <i class="bi bi-grid-3x3 text-info me-2"></i>Fabric Name
+                                            </label>
+                                            <input type="text" class="form-control" id="nexusFabricName" name="nexus_fabric_name" placeholder="Enter fabric name">
+                                            <small class="form-text text-muted">Specific fabric to manage in Nexus Dashboard (e.g., DC1-Fabric)</small>
+                                        </div>
+
+                                        <!-- Response Area -->
+                                        <div id="apiKeysResponse" class="alert" style="display: none;"></div>
+
+                                        <!-- Action Buttons -->
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bi bi-save me-2"></i>Save Configuration
+                                            </button>
+                                            <button type="button" class="btn btn-secondary" id="loadConfigBtn">
+                                                <i class="bi bi-arrow-clockwise me-2"></i>Load Current Config
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" id="clearConfigBtn">
+                                                <i class="bi bi-trash me-2"></i>Clear All
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Connection Test -->
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0"><i class="bi bi-shield-check me-2"></i>Connection Test</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-muted mb-3">Test your Nexus Dashboard API connection to verify configuration</p>
+                                    <button type="button" class="btn btn-success" id="testNexusConnectionBtn">
+                                        <i class="bi bi-play-circle me-2"></i>Test Nexus Dashboard Connection
+                                    </button>
+                                    <div id="nexusConnectionResponse" class="alert mt-3" style="display: none;"></div>
+                                </div>
+                            </div>
+
+                            <!-- System Information -->
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-secondary text-white">
+                                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>System Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <strong>Application Version:</strong>
+                                            <p class="mb-0 text-muted">1.0.0</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <strong>API Status:</strong>
+                                            <p class="mb-0"><span class="badge bg-success">Online</span></p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <strong>Last Configuration Update:</strong>
+                                            <p class="mb-0 text-muted" id="lastConfigUpdate">Never</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <strong>Environment:</strong>
+                                            <p class="mb-0 text-muted">Development</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="bg-light text-center py-3 mt-5 border-top">
+                <div class="container-fluid">
+                    <p class="mb-0 text-muted">&copy; 2025 Cisco Systems Inc. | NaC API - Network as Code</p>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <!-- Tabulator JS -->
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.5/dist/js/tabulator.min.js"></script>
+
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

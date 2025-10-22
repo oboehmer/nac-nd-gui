@@ -1,0 +1,7 @@
+nac:
+  api_key: your-nac-api-key-here
+nexus_dashboard:
+  api_key: your-nexus-dashboard-api-key-here
+  url: https://nexus-dashboard.example.com
+  username: admin
+  fabric_name: DC1-Fabric
