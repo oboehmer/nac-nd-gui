@@ -55,6 +55,10 @@ swagger_template = {
         {
             "name": "Nexus Dashboard",
             "description": "Nexus Dashboard integration endpoints"
+        },
+        {
+            "name": "NaC API",
+            "description": "Network as Code API integration endpoints"
         }
     ]
 }

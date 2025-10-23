@@ -44,18 +44,31 @@ See global memory for universal Flask patterns (REST API, Bootstrap CDN, Fetch A
 **Project Context**: Automatic Flask route discovery; no manual docstring formatting
 **See Global**: Swagger/Flasgger API Documentation Pattern
 
-### Flask Blueprint Modularization Pattern
-**Pattern**: Organize API routes into versioned subdirectories with domain-specific modules
-**Implementation**: Created api/v1/ directory structure with domain modules (tables.py: 8.4KB, admin.py: 5.5KB, nexus.py: 10.8KB)
-**Project Context**: Migrated from monolithic app.py to modular blueprint architecture; registered via api_v1 blueprint
-**Results**: Improved code organization, separation of concerns, and maintainability for API endpoints
-**Added**: [2025-10-22T22:54:30Z]
-**Additional Details**: Blueprint registration in main app.py using `from api.v1 import api_v1` and `app.register_blueprint(api_v1)`. Each domain module (tables, admin, nexus) handles related endpoints independently.
+### Flask Blueprint Modularization
+**Implementation**: Created api/v1/ structure with domain modules (tables.py: 8.4KB, admin.py: 5.5KB, nexus.py: 10.8KB)
+**Project Context**: Migrated from monolithic app.py to modular blueprint architecture
+**See Global**: Flask Blueprint Modularization Pattern
 
-### Iterative Frontend Refinement Development Pattern
-**Pattern**: Apply incremental JavaScript improvements through multiple small, focused edits
+### Iterative Frontend Refinement
 **Implementation**: 14 successive edits to static/js/app.js for gradual enhancement
-**Project Context**: Frontend development workflow for app.js refinement
-**Results**: Controlled, testable improvements with clear change history; reduces risk of breaking changes
-**Added**: [2025-10-22T22:54:30Z]
-**Additional Details**: Each edit represents a single logical improvement, making debugging and code review easier. Pattern particularly effective for complex frontend logic requiring iterative testing.
+**Project Context**: Applied to app.js refinement with controlled testing
+**See Global**: Iterative Frontend Refinement Pattern
+
+### API Connection Testing Implementation
+**Implementation**: Configuration-driven connection test endpoints with comprehensive error handling
+**Project Context**: /test-nac-connection (Bearer auth), /test-nd-connection (header auth), /test-nac-api-connection (multi-provider SCM auth) endpoints in admin.py
+**Specifics**: Tests NaC API, Nexus Dashboard API, and SCM API (GitHub/GitLab/Bitbucket/Azure DevOps) connectivity
+**See Global**: API Connection Test Endpoint Pattern (promoted 2025-10-23)
+**Added**: [2025-10-23T16:15:00Z]
+**Updated**: [2025-10-23T16:22:00Z]
+
+### NaC API Client Implementation
+**Authentication**: Passthrough token + x-git-config header (api_url, repository, data_sources, type)
+**Configuration**: YAML-driven with _load_config() + _ensure_config() validation
+**Client Pattern**: Singleton factory (get_nac_client()) with session reuse
+**Project Context**: nac_api.py with NacApiClient class; integrated with admin.py
+**Methods**: RESTful (get/post/put/delete) + convenience (read_data_model, test_connection)
+**Error Handling**: Configuration validation, 30s timeout, ConnectionError/RequestException logging
+**SCM Support**: GitHub, GitLab, Bitbucket (cloud/local), Azure DevOps via provider-specific header construction
+**See Global**: API Client with Configuration Management Pattern
+**Added**: [2025-10-23T17:30:00Z]

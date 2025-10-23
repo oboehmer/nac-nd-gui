@@ -46,3 +46,19 @@ fetch('/api/data', {
 **Status**: Transient error; system resilient (processing can resume after rate limit period)
 **Added**: [2025-10-22T21:18:00Z]
 **Additional Details**: Error occurred during au-update delegation after extensive cross-tier promotion analysis (477+ log entries processed, 21 patterns promoted). System demonstrated resilience: previous processing sessions completed successfully, and the error is recoverable with retry after rate limit window expires. Consider implementing rate limit awareness in high-volume processing scenarios.
+
+### Bootstrap Modal Z-Index Layering
+**When it happens**: Bootstrap 5 modals fail to display above other content or become unclickable due to z-index conflicts with other UI elements
+**How to prevent**: Apply explicit z-index hierarchy: backdrop (1040), modal (1050), dialog (1060), content (1070); use !important to override conflicting styles; ensure pointer-events: auto on modal-content
+**Related components**: Bootstrap 5 modal components, custom CSS overrides
+**Last seen**: [2025-10-23T18:25:55Z]
+**Status**: Fixed with comprehensive z-index layering in style.css
+**Added**: [2025-10-23T18:35:00Z]
+**Additional Details**:
+```css
+.modal-backdrop { z-index: 1040 !important; }
+.modal { z-index: 1050 !important; }
+.modal-dialog { z-index: 1060 !important; }
+.modal-content { position: relative; z-index: 1070 !important; pointer-events: auto; }
+```
+This layered approach ensures modals always display correctly and remain interactive regardless of other page elements.
