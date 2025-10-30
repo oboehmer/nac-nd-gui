@@ -1,9 +1,10 @@
-# Project Phases 6-8 Archive (2025-10-30)
+# Project Phases 6-10 Archive (2025-10-30)
 
 **Archive Date**: 2025-10-30
-**Reason**: current-session.md exceeded 8KB capacity (105.5%, 8,640 bytes)
-**Content**: Phases 6-8 development work and memory operations
-**Period**: 2025-10-30 18:53 - 2025-10-30 20:00 UTC
+**Updated**: 2025-10-30 (added Phases 9-10)
+**Reason**: current-session.md exceeded 8KB capacity (101.6%, 8,326 bytes)
+**Content**: Phases 6-10 development work and memory operations
+**Period**: 2025-10-30 18:53 - 2025-10-30 20:08 UTC
 
 ---
 
@@ -52,7 +53,7 @@
 
 **Pattern**: Incremental integration with testing; semantic CSS naming; comprehensive integration documentation
 
-**Pattern Documented**: SVG Logo and Banner Integration (project-specific pattern in project-lessons.md)
+**Pattern Documented**: SVG Logo and Banner Integration (project-specific pattern, archived in documentation-patterns.md)
 
 **Memory Operations**:
 - Session 23: Processed 22 log entries from Phase 8 work (9 documentation updates, 2 HTML template changes, 2 integration tests, 5 bash operations, 2 memory operations)
@@ -60,7 +61,50 @@
 
 ---
 
-## Memory System Operations Summary (Phases 6-8)
+## Phase 9: Configuration Path Migration Fixes (2025-10-30 20:01 UTC)
+
+**Path Resolution Updates**: Fixed config.yaml loading after src/ migration in 3 modules (nexus_dashboard.py, nac_api.py, admin.py)
+
+**Implementation**: Updated path traversal logic to navigate from src/nac_nd_gui/[subdir]/ up to project root, then to yaml/config.yaml
+
+**Files Modified**: 5 path fixes across save/load/clear config functions
+
+**Testing**: Verified yaml directory location and path resolution with actual files
+
+**Pattern**: Maintenance work after package structure migration; ensures config loading works from new src/ layout
+
+**Memory Operations**:
+- Session 24: Analyzed Phase 9 work; NO new patterns promoted (maintenance work)
+- Session 24: CRITICAL archival of Phases 6-8 (1.8KB reduction)
+- Session 24: current-session.md restored from 105.5%→83.1%
+
+---
+
+## Phase 10: README Documentation Enhancement (2025-10-30 20:07 UTC)
+
+**Configuration Section**: Expanded API Integration section with dual configuration methods (web admin panel vs manual YAML editing)
+
+**NaC API Explanation**: Added comprehensive NaC API integration section with architecture diagram, benefits, requirements, and workflow
+
+**Documentation Additions**:
+- Option A (Web Admin Panel): Detailed field descriptions for NaC API and Nexus Dashboard settings
+- Option B (Manual Config): Complete YAML example with field-level descriptions table (10 fields documented)
+- NaC API section: What is NaC API, key benefits (5 points), architecture diagram, configuration requirements (3 areas), capabilities (5 features), example workflow (6 steps)
+
+**Files Modified**: README.md (2 major sections enhanced)
+
+**Impact**: Comprehensive documentation enabling users to understand and configure both API integrations; architecture diagram clarifies system components and data flow
+
+**Pattern Documented**: Dual Configuration Method Documentation (promoted to global lessons-learned.md)
+
+**Memory Operations**:
+- Session 25: Processed 5 log entries from Phase 10 work
+- Documentation pattern identified for global promotion
+- Session 26: Promoted Dual Configuration Method Documentation to global (pattern library 37→38)
+
+---
+
+## Memory System Operations Summary (Phases 6-10)
 
 **Session 15-19**: Promoted 2 NEW patterns (Form-First UI layout, Modern Python packaging); Pattern library: 30→36 universal patterns; 146+ entries processed, 94 archives
 
@@ -72,13 +116,19 @@
 
 **Session 23**: Phase 8 analysis; processed 22 log entries; SVG asset integration pattern documented; 97+ total archives
 
-**Total Patterns Promoted in Phases 6-8**: 2 patterns (Modern Python Packaging, Documentation Synchronization)
+**Session 24**: Phase 9 analysis; NO new patterns promoted; CRITICAL archival of Phases 6-8 (1.8KB reduction); current-session.md: 105.5%→83.1% RESTORED; 98+ total archives
 
-**Memory Health Improvement**: Global memory 68.6%→61.5% (7.1% improvement); Session history 94.0%→62.6% (31.4% improvement)
+**Session 25**: Phase 10 analysis; processed 5 log entries; Documentation pattern identified; current-session.md: 83.1%→99.2% (Phase 10 added 1.3KB); 99+ total archives
+
+**Session 26**: Phase 10 promotion; Dual Configuration Method Documentation promoted to global (pattern library 37→38); CRITICAL archival of Phases 9-10 (current-session.md: 101.6%→90.5%); 100+ total archives
+
+**Total Patterns Promoted in Phases 6-10**: 3 patterns (Modern Python Packaging, Documentation Synchronization, Dual Configuration Method Documentation)
+
+**Memory Health Improvement**: Global memory 68.6%→61.5% (7.1% improvement); Session history 94.0%→62.6% (31.4% improvement); Project memory restored from critical (91.2%→83.8%)
 
 ---
 
-## Key Technical Decisions (Phases 6-8)
+## Key Technical Decisions (Phases 6-10)
 
 **Modern Python Packaging**:
 - src/ layout for proper package structure
@@ -101,17 +151,29 @@
 - Comprehensive documentation in LOGO-INTEGRATION.md
 - Incremental testing approach
 
+**Configuration Path Resolution**:
+- Updated path traversal for src/ layout
+- Maintains yaml/ directory at project root
+- Consistent path resolution across modules
+
+**Dual Configuration Documentation**:
+- Web admin panel (GUI) vs manual YAML editing
+- Field-level description tables
+- Architecture diagrams for system understanding
+- Example workflows for user guidance
+
 ---
 
 **Archive Statistics**:
-- **Lines**: 101 lines of archived content
-- **Bytes**: 4,523 bytes archived from current-session.md
-- **Reduction**: Approximately 52% capacity reduction expected
-- **Pattern Library**: 37 universal patterns (30→37 during this period)
-- **Memory Health**: Restored global memory from 68.6%→61.5%, session history from 94.0%→62.6%
+- **Lines**: 160+ lines of archived content (Phases 6-10)
+- **Bytes**: ~1,100 bytes archived from current-session.md (Phases 9-10)
+- **Total Reduction**: Current-session.md from 101.6%→90.5% (11.1% reduction)
+- **Pattern Library**: 38 universal patterns (30→38 during this period)
+- **Memory Health**: Project memory restored from 91.2%→83.8%
 
 **Related Archives**:
 - `project-phases-1-5.md` - Foundation and workflow UI (Phases 1-5)
+- `documentation-patterns.md` - Detailed documentation patterns (SVG integration, Dual config docs)
 - `terraform-infrastructure-patterns.md` - Global memory archival (2025-Q3)
 - `flask-web-development-patterns.md` - Global memory archival (2025-Q4)
 

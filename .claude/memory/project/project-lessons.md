@@ -3,6 +3,11 @@
 <!-- Document insights and patterns specific to this project -->
 <!-- Note: Core Flask/web patterns promoted to global memory (~/.claude/memory/lessons-learned.md) -->
 
+**Archive Notes**:
+- SVG Logo Integration pattern → `.claude/memory/archive/2025-Q4/documentation-patterns.md` (2025-10-30)
+- Dual Configuration Documentation (detailed) → `.claude/memory/archive/2025-Q4/documentation-patterns.md` (2025-10-30)
+- Dual Configuration Documentation (universal pattern) → Global lessons-learned.md (2025-10-30)
+
 ## Project Architecture Overview
 
 **Flask Application Stack**: Flask 3.0.3 + Bootstrap 5.3.3 + Tabulator + Swagger/Flasgger
@@ -94,28 +99,6 @@ See global memory for universal Flask patterns (REST API, Bootstrap CDN, Fetch A
 - Import updates: .api.v1 relative imports, main() function for entry point
 - Version control: Updated .gitignore for .venv/, uv.lock, .python-version.lock
 
-### SVG Logo and Banner Integration
-**Pattern**: Incremental SVG asset integration with semantic CSS classes and comprehensive documentation
-**Implementation**: Created custom SVG assets (nac-logo.svg, nac-banner.svg, nac-icon.svg); integrated Cisco branding; applied semantic CSS classes (nac-banner-nav, nac-banner-wrapper); tested with uv run python; documented in LOGO-INTEGRATION.md
-**Project Context**: Flask template (index.html) with Bootstrap 5 navbar; sidebar with Cisco logo; main landing page with NaC logo; favicon integration
-**Results**: Professional branding throughout application; scalable SVG assets for all screen sizes; maintainable with semantic CSS naming; documented integration process
-**Added**: [2025-10-30T19:58:00Z]
-**Additional Details**:
-- SVG assets: nac-logo.svg (main landing), nac-banner.svg (top nav), nac-icon.svg (favicon)
-- Cisco branding: Cisco_Logo_no_TM_White-RGB_264px.png (sidebar header)
-- Semantic CSS: .nac-banner-nav, .nac-banner-wrapper for consistent styling
-- Testing: Integration verified with Flask app load test
-- Documentation: LOGO-INTEGRATION.md tracks all asset specifications and implementation status
-
-### Dual Configuration Method Documentation
-**Pattern**: Document complex integrations with both GUI and manual configuration methods, plus architecture diagrams and field-level descriptions
-**Implementation**: README sections with Option A (Web Admin Panel - step-by-step GUI instructions) and Option B (Manual File Editing - complete YAML examples with field description tables); architecture diagrams showing data flow; example workflows
-**Project Context**: API integration configuration (NaC API + Nexus Dashboard); 10 configuration fields with descriptions, examples, and validation requirements
-**Results**: Users can choose configuration method that fits their workflow; field-level table provides quick reference; architecture diagram clarifies system components; comprehensive coverage reduces support questions
-**Added**: [2025-10-30T20:08:00Z]
-**Additional Details**:
-- Configuration methods: Web admin panel (recommended for beginners) vs manual YAML editing (preferred by automation/power users)
-- Field descriptions: Markdown table with Field | Description | Example columns for all 10 configuration parameters
-- Architecture diagram: ASCII art showing NaC ND GUI → NaC API → SCM (GitHub) with bidirectional data flow
-- Workflow example: 6-step user workflow from GUI form to Git repository commit
-- Benefits section: GitOps, version control, validation, automation, multi-provider support (5 key benefits explained)
+### Branding and Documentation Patterns (ARCHIVED)
+**SVG Logo Integration**: Archived to `.claude/memory/archive/2025-Q4/documentation-patterns.md` (project-specific branding implementation)
+**Dual Configuration Documentation**: Universal pattern promoted to global lessons-learned.md; detailed implementation archived to `.claude/memory/archive/2025-Q4/documentation-patterns.md`

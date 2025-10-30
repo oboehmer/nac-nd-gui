@@ -81,6 +81,9 @@ Visit `http://localhost:9999` to access the application.
 # macOS/Linux
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
+# Or using Homebrew
+brew install astral-sh/uv/uv
+
 # Windows
 powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 
