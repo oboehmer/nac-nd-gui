@@ -1,7 +1,12 @@
 nac:
-  api_key: your-nac-api-key-here
+  api_url: http://0.0.0.0:8000
+  api_key: ghp_xxxxxxxxxxxxxxxx
+  scm_provider: github
+  scm_api_url: https://
+  repository_url: username/repository
+  data_sources_dir: data
 nexus_dashboard:
-  api_key: your-nexus-dashboard-api-key-here
-  url: https://nexus-dashboard.example.com
+  api_key: xxxxxxxxxxxxxxxxxxxxx
+  url: https://10.x.x.x
   username: admin
-  fabric_name: DC1-Fabric
+  fabric_name: XXXXXXXXXXXXX

@@ -746,6 +746,42 @@ function convertToYaml(data) {
 
 
 /**
+ * Load VRFs into dropdown for action-networks page
+ */
+async function loadVrfDropdown() {
+    const vrfSelect = document.getElementById('networkVrfName');
+    if (!vrfSelect) {
+        console.error('VRF select element not found');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/v1/nac/vrfs');
+        const result = await response.json();
+
+        if (result.status === 'success' && result.data) {
+            // Clear existing options except the first one
+            vrfSelect.innerHTML = '<option value="">Select a VRF</option>';
+
+            // Add VRF options
+            result.data.forEach(vrf => {
+                const option = document.createElement('option');
+                option.value = vrf.name;
+                option.textContent = vrf.name;
+                vrfSelect.appendChild(option);
+            });
+
+            console.log(`Loaded ${result.data.length} VRFs into dropdown`);
+        } else {
+            console.error('Failed to load VRFs:', result.message);
+        }
+    } catch (error) {
+        console.error('Error loading VRFs:', error);
+    }
+}
+
+
+/**
  * Event delegation for NaC YAML modal buttons
  * This must be called after DOM is loaded
  */
@@ -780,6 +816,165 @@ function initializeNacYamlEventListeners(tableInstances) {
             showInterfaceYamlModal(interfaceName, switchHostname, tableInstances);
         }
     });
+}
+
+
+/**
+ * Initialize form handlers for NaC action forms
+ */
+function initializeNacActionFormHandlers() {
+    // VRF Action Form Handler
+    const vrfActionForm = document.getElementById('vrfActionForm');
+    if (vrfActionForm) {
+        vrfActionForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const responseDiv = document.getElementById('vrfActionResponse');
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+
+            // Show loading state
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Merging...';
+
+            // Get form data (required fields)
+            const formData = {
+                name: document.getElementById('vrfName').value,
+                vrf_id: parseInt(document.getElementById('vrfId').value),
+                vlan_id: parseInt(document.getElementById('vlanId').value)
+            };
+
+            // Add optional fields if provided
+            const vrfVlanName = document.getElementById('vrfVlanName').value;
+            if (vrfVlanName) {
+                formData.vrf_vlan_name = vrfVlanName;
+            }
+
+            const vrfDescription = document.getElementById('vrfDescription').value;
+            if (vrfDescription) {
+                formData.vrf_description = vrfDescription;
+            }
+
+            try {
+                const response = await fetch('/api/v1/nac/vrfs/merge', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    responseDiv.innerHTML = `<strong><i class="bi bi-check-circle me-2"></i>Success!</strong><p class="mb-0 mt-2">${result.message}</p>`;
+                    responseDiv.className = 'alert alert-success';
+                    responseDiv.style.display = 'block';
+
+                    // Reset form after success
+                    vrfActionForm.reset();
+                } else {
+                    responseDiv.innerHTML = `<strong><i class="bi bi-x-circle me-2"></i>Error</strong><p class="mb-0 mt-2">${result.message}</p>`;
+                    responseDiv.className = 'alert alert-danger';
+                    responseDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('VRF merge error:', error);
+                responseDiv.innerHTML = `<strong><i class="bi bi-x-circle me-2"></i>Error</strong><p class="mb-0 mt-2">Failed to merge VRF: ${error.message}</p>`;
+                responseDiv.className = 'alert alert-danger';
+                responseDiv.style.display = 'block';
+            } finally {
+                // Restore button state
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+
+                // Smooth scroll to response
+                responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+    }
+
+    // Network Action Form Handler
+    const networkActionForm = document.getElementById('networkActionForm');
+    if (networkActionForm) {
+        networkActionForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const responseDiv = document.getElementById('networkActionResponse');
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+
+            // Show loading state
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Merging...';
+
+            // Get form data (required fields)
+            const formData = {
+                name: document.getElementById('networkName').value,
+                vrf_name: document.getElementById('networkVrfName').value,
+                net_id: parseInt(document.getElementById('netId').value),
+                vlan_id: parseInt(document.getElementById('networkVlanId').value)
+            };
+
+            // Add optional fields if provided
+            const vlanName = document.getElementById('vlanName').value;
+            if (vlanName) {
+                formData.vlan_name = vlanName;
+            }
+
+            const gwIpAddress = document.getElementById('gwIpAddress').value;
+            if (gwIpAddress) {
+                formData.gw_ip_address = gwIpAddress;
+            }
+
+            const gwIpv6 = document.getElementById('gwIpv6Address').value;
+            if (gwIpv6) {
+                formData.gw_ipv6_address = gwIpv6;
+            }
+
+            const secondaryIp = document.getElementById('secondaryIpAddress').value;
+            if (secondaryIp) {
+                formData.secondary_ip_address = secondaryIp;
+            }
+
+            try {
+                const response = await fetch('/api/v1/nac/networks/merge', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    responseDiv.innerHTML = `<strong><i class="bi bi-check-circle me-2"></i>Success!</strong><p class="mb-0 mt-2">${result.message}</p>`;
+                    responseDiv.className = 'alert alert-success';
+                    responseDiv.style.display = 'block';
+
+                    // Reset form after success
+                    networkActionForm.reset();
+                } else {
+                    responseDiv.innerHTML = `<strong><i class="bi bi-x-circle me-2"></i>Error</strong><p class="mb-0 mt-2">${result.message}</p>`;
+                    responseDiv.className = 'alert alert-danger';
+                    responseDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Network merge error:', error);
+                responseDiv.innerHTML = `<strong><i class="bi bi-x-circle me-2"></i>Error</strong><p class="mb-0 mt-2">Failed to merge Network: ${error.message}</p>`;
+                responseDiv.className = 'alert alert-danger';
+                responseDiv.style.display = 'block';
+            } finally {
+                // Restore button state
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+
+                // Smooth scroll to response
+                responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+    }
 }
 
 

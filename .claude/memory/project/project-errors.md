@@ -62,3 +62,23 @@ fetch('/api/data', {
 .modal-content { position: relative; z-index: 1070 !important; pointer-events: auto; }
 ```
 This layered approach ensures modals always display correctly and remain interactive regardless of other page elements.
+
+### HTTP 204 No Content Response Handling
+**When it happens**: API POST/PUT requests return 204 No Content status (successful operation with no response body), causing JSON parsing errors when client expects response body
+**How to prevent**: Check for 204 status code explicitly and return synthetic success response dictionary when no body is returned; handle alongside 200/201 success codes
+**Related components**: NaC API Client (nac_api.py), POST and PUT HTTP methods
+**Last seen**: [2025-10-30T00:59:16Z]
+**Status**: Implemented in NacApiClient.post() and NacApiClient.put() methods
+**Added**: [2025-10-30T05:00:00Z]
+**Additional Details**:
+```python
+if response.status_code in [200, 201]:
+    return response.json()
+elif response.status_code == 204:
+    # 204 No Content - successful but no body to return
+    return {'status': 'success', 'message': 'Operation completed successfully'}
+else:
+    logger.error(f"POST request failed: {response.status_code} - {response.text}")
+    return None
+```
+This pattern prevents JSON parsing errors on 204 responses while maintaining consistent return type (Dict or None) for client code.

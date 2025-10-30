@@ -134,13 +134,14 @@ class NacApiClient:
             logger.error(f"GET request failed: {str(e)}")
             return None
 
-    def post(self, endpoint: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def post(self, endpoint: str, data: Dict[str, Any], params: Optional[Dict] = None) -> Optional[Dict[str, Any]]:
         """
         Make POST request to NaC API
 
         Args:
             endpoint: API endpoint
             data: Request payload
+            params: Optional query parameters
 
         Returns:
             Response JSON data or None if request failed
@@ -150,10 +151,13 @@ class NacApiClient:
 
         try:
             url = f"{self.api_url}{endpoint}"
-            response = self.session.post(url, json=data, verify=False, timeout=30)
+            response = self.session.post(url, json=data, params=params, verify=False, timeout=30)
 
             if response.status_code in [200, 201]:
                 return response.json()
+            elif response.status_code == 204:
+                # 204 No Content - successful but no body to return
+                return {'status': 'success', 'message': 'Operation completed successfully'}
             else:
                 logger.error(f"POST request failed: {response.status_code} - {response.text}")
                 return None
@@ -162,13 +166,14 @@ class NacApiClient:
             logger.error(f"POST request failed: {str(e)}")
             return None
 
-    def put(self, endpoint: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def put(self, endpoint: str, data: Dict[str, Any], params: Optional[Dict] = None) -> Optional[Dict[str, Any]]:
         """
         Make PUT request to NaC API
 
         Args:
             endpoint: API endpoint
             data: Request payload
+            params: Optional query parameters
 
         Returns:
             Response JSON data or None if request failed
@@ -178,10 +183,13 @@ class NacApiClient:
 
         try:
             url = f"{self.api_url}{endpoint}"
-            response = self.session.put(url, json=data, verify=False, timeout=30)
+            response = self.session.put(url, json=data, params=params, verify=False, timeout=30)
 
             if response.status_code == 200:
                 return response.json()
+            elif response.status_code == 204:
+                # 204 No Content - successful but no body to return
+                return {'status': 'success', 'message': 'Operation completed successfully'}
             else:
                 logger.error(f"PUT request failed: {response.status_code} - {response.text}")
                 return None
@@ -190,12 +198,13 @@ class NacApiClient:
             logger.error(f"PUT request failed: {str(e)}")
             return None
 
-    def delete(self, endpoint: str) -> bool:
+    def delete(self, endpoint: str, params: Optional[Dict] = None) -> bool:
         """
         Make DELETE request to NaC API
 
         Args:
             endpoint: API endpoint
+            params: Optional query parameters
 
         Returns:
             True if deletion successful, False otherwise
@@ -205,7 +214,7 @@ class NacApiClient:
 
         try:
             url = f"{self.api_url}{endpoint}"
-            response = self.session.delete(url, verify=False, timeout=30)
+            response = self.session.delete(url, params=params, verify=False, timeout=30)
 
             if response.status_code in [200, 204]:
                 return True

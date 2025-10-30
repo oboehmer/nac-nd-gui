@@ -25,20 +25,57 @@
                 <div class="text-center mb-2">
                     <img src="{{ url_for('static', filename='images/Cisco_Logo_no_TM_White-RGB_264px.png') }}" alt="Cisco Systems Inc." class="sidebar-logo mb-2">
                 </div>
-                <h4 class="mb-0 text-center">NaC API</h4>
+                <h4 class="mb-0 text-center">NaC FrontEnd</h4>
                 <p class="text-center mb-0 small text-white-50">Network as Code</p>
             </div>
             <ul class="sidebar-nav">
+                <!-- Main Menu Item -->
+                <li class="sidebar-item">
+                    <a href="#" class="sidebar-link active" data-page="main" data-parent="main">
+                        <i class="bi bi-house-door"></i>
+                        <span>Main</span>
+                    </a>
+                </li>
+
+                <!-- Actions Parent Node -->
+                <li class="sidebar-item">
+                    <a href="#actionMenu" class="sidebar-parent" data-bs-toggle="collapse" aria-expanded="false">
+                        <i class="bi bi-list-check"></i>
+                        <span>Actions</span>
+                        <i class="bi bi-chevron-down sidebar-arrow"></i>
+                    </a>
+                    <ul class="collapse sidebar-submenu" id="actionMenu">
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" data-page="pod-initialization" data-parent="action">
+                                <i class="bi bi-play-circle"></i>
+                                <span>POD Initialization</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" data-page="action-vrfs" data-parent="action">
+                                <i class="bi bi-bezier2"></i>
+                                <span>VRFs</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" data-page="action-networks" data-parent="action">
+                                <i class="bi bi-diagram-3"></i>
+                                <span>Networks</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
                 <!-- NaC Parent Node -->
                 <li class="sidebar-item">
-                    <a href="#nacMenu" class="sidebar-parent" data-bs-toggle="collapse" aria-expanded="true">
+                    <a href="#nacMenu" class="sidebar-parent" data-bs-toggle="collapse" aria-expanded="false">
                         <i class="bi bi-layer-forward"></i>
                         <span>NaC YAML</span>
                         <i class="bi bi-chevron-down sidebar-arrow"></i>
                     </a>
-                    <ul class="collapse show sidebar-submenu" id="nacMenu">
+                    <ul class="collapse sidebar-submenu" id="nacMenu">
                         <li class="sidebar-item">
-                            <a href="#" class="sidebar-link active" data-page="fabric" data-parent="nac">
+                            <a href="#" class="sidebar-link" data-page="fabric" data-parent="nac">
                                 <i class="bi bi-grid-3x3"></i>
                                 <span>Fabric</span>
                             </a>
@@ -130,17 +167,37 @@
                     <button class="btn btn-primary" id="sidebarToggle" type="button">
                         <i class="bi bi-list"></i>
                     </button>
-                    <div class="ms-auto">
-                        <span class="navbar-text">Welcome, User</span>
-                    </div>
                 </div>
             </nav>
 
             <!-- Main Content -->
             <div class="container-fluid mt-4">
                 <!-- Main Landing Page -->
+                <div id="page-main" class="page-content active">
+                    <div class="page-header mb-4">
+                        <h2><i class="bi bi-house-door me-2"></i>Welcome to NaC Workflows</h2>
+                        <p class="text-muted">Network as Code - Manage your network infrastructure using Infrastrcture as Code</p>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <p>
+                                The intent of this tool is to demonstrate what is possible by using NaC-API in front of Network as Code. 
+                                Operators that struggle with learning data structures (in this case YAML) could potentially use a tool
+                                similar to this to create workflows that take advantage of Network as Code to push configuration 
+                                changes into their network with all the embeded benefits of validation that Network as Code provides.
+                                </p><p>
+                                NaC-API provides 
+                                means to create a simple front-end towards the data structure used by Network as Code. NaC API interacts
+                                with underlying Source Code Managers (SCM) to retrieve and update the data model. NaC API supports 
+                                Github, Gitlab, Bitbucket and even local file system representation of the model.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
                 <!-- Fabric Page -->
-                <div id="page-fabric" class="page-content active">
+                <div id="page-fabric" class="page-content">
                     <div class="page-header mb-4">
                         <h2><i class="bi bi-grid-3x3 me-2"></i>Fabric Configuration</h2>
                         <p class="text-muted">Global and fabric-level network configuration</p>
@@ -282,6 +339,291 @@
                         </div>
                         <div class="card-body">
                             <div id="nexusNetworksTable"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- POD Initialization Page -->
+                <div id="page-pod-initialization" class="page-content">
+                    <div class="page-header mb-4">
+                        <h2><i class="bi bi-play-circle me-2"></i>POD Initialization</h2>
+                        <p class="text-muted">Initialize and configure your POD environment</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-10 mx-auto">
+                            <form id="podInitForm">
+                                <!-- POD Configuration -->
+                                <div class="card shadow-sm mb-4">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="mb-0"><i class="bi bi-router me-2"></i>Switch Configuration</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Switch 1 Configuration -->
+                                        <div class="mb-4">
+                                            <h6 class="text-primary mb-3"><i class="bi bi-1-circle me-2"></i>Switch 1</h6>
+
+                                            <!-- Switch 1 Serial -->
+                                            <div class="mb-3">
+                                                <label for="switch1Serial" class="form-label fw-bold">
+                                                    <i class="bi bi-upc-scan text-primary me-2"></i>Switch 1 Serial
+                                                </label>
+                                                <input type="text" class="form-control" id="switch1Serial" name="switch1_serial" placeholder="Enter switch 1 serial number" required>
+                                                <small class="form-text text-muted">Serial number of the first switch</small>
+                                            </div>
+
+                                            <!-- Switch 1 Name -->
+                                            <div class="mb-3">
+                                                <label for="switch1Name" class="form-label fw-bold">
+                                                    <i class="bi bi-tag text-primary me-2"></i>Switch 1 Name
+                                                </label>
+                                                <input type="text" class="form-control" id="switch1Name" name="switch1_name" placeholder="Enter switch 1 name" required>
+                                                <small class="form-text text-muted">Hostname or identifier for the first switch</small>
+                                            </div>
+                                        </div>
+
+                                        <hr class="my-4">
+
+                                        <!-- Switch 2 Configuration -->
+                                        <div class="mb-4">
+                                            <h6 class="text-primary mb-3"><i class="bi bi-2-circle me-2"></i>Switch 2</h6>
+
+                                            <!-- Switch 2 Serial -->
+                                            <div class="mb-3">
+                                                <label for="switch2Serial" class="form-label fw-bold">
+                                                    <i class="bi bi-upc-scan text-primary me-2"></i>Switch 2 Serial
+                                                </label>
+                                                <input type="text" class="form-control" id="switch2Serial" name="switch2_serial" placeholder="Enter switch 2 serial number" required>
+                                                <small class="form-text text-muted">Serial number of the second switch</small>
+                                            </div>
+
+                                            <!-- Switch 2 Name -->
+                                            <div class="mb-3">
+                                                <label for="switch2Name" class="form-label fw-bold">
+                                                    <i class="bi bi-tag text-primary me-2"></i>Switch 2 Name
+                                                </label>
+                                                <input type="text" class="form-control" id="switch2Name" name="switch2_name" placeholder="Enter switch 2 name" required>
+                                                <small class="form-text text-muted">Hostname or identifier for the second switch</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Response Area -->
+                                <div id="podInitResponse" class="alert" style="display: none;"></div>
+
+                                <!-- Action Buttons -->
+                                <div class="card shadow-sm mb-4">
+                                    <div class="card-body">
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bi bi-play-circle me-2"></i>Initialize POD
+                                            </button>
+                                            <button type="reset" class="btn btn-outline-secondary">
+                                                <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Form
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action VRFs Page -->
+                <div id="page-action-vrfs" class="page-content">
+                    <div class="page-header mb-4">
+                        <h2><i class="bi bi-bezier2 me-2"></i>VRFs Actions</h2>
+                        <p class="text-muted">Create and manage VRF configurations</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-10 mx-auto">
+                            <form id="vrfActionForm">
+                                <!-- VRF Configuration -->
+                                <div class="card shadow-sm mb-4">
+                                    <div class="card-header bg-info text-white">
+                                        <h5 class="mb-0"><i class="bi bi-bezier2 me-2"></i>VRF Configuration</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- VRF Name -->
+                                        <div class="mb-3">
+                                            <label for="vrfName" class="form-label fw-bold">
+                                                <i class="bi bi-tag text-info me-2"></i>VRF Name
+                                            </label>
+                                            <input type="text" class="form-control" id="vrfName" name="name" placeholder="Enter VRF name" required>
+                                            <small class="form-text text-muted">Unique identifier for the VRF instance</small>
+                                        </div>
+
+                                        <!-- VRF ID -->
+                                        <div class="mb-3">
+                                            <label for="vrfId" class="form-label fw-bold">
+                                                <i class="bi bi-hash text-info me-2"></i>VRF ID
+                                            </label>
+                                            <input type="number" class="form-control" id="vrfId" name="vrf_id" placeholder="Enter VRF ID" required>
+                                            <small class="form-text text-muted">Virtual Routing and Forwarding identifier (numeric)</small>
+                                        </div>
+
+                                        <!-- VLAN ID -->
+                                        <div class="mb-3">
+                                            <label for="vlanId" class="form-label fw-bold">
+                                                <i class="bi bi-hash text-info me-2"></i>VLAN ID
+                                            </label>
+                                            <input type="number" class="form-control" id="vlanId" name="vlan_id" placeholder="Enter VLAN ID" min="1" max="4094" required>
+                                            <small class="form-text text-muted">VLAN identifier (1-4094)</small>
+                                        </div>
+
+                                        <!-- VRF VLAN Name -->
+                                        <div class="mb-3">
+                                            <label for="vrfVlanName" class="form-label fw-bold">
+                                                <i class="bi bi-diagram-2 text-info me-2"></i>VRF VLAN Name
+                                            </label>
+                                            <input type="text" class="form-control" id="vrfVlanName" name="vrf_vlan_name" placeholder="Enter VRF VLAN name">
+                                            <small class="form-text text-muted">Optional descriptive name for the VRF VLAN</small>
+                                        </div>
+
+                                        <!-- VRF Description -->
+                                        <div class="mb-3">
+                                            <label for="vrfDescription" class="form-label fw-bold">
+                                                <i class="bi bi-chat-left-text text-info me-2"></i>VRF Description
+                                            </label>
+                                            <input type="text" class="form-control" id="vrfDescription" name="vrf_description" placeholder="Enter VRF description" maxlength="250">
+                                            <small class="form-text text-muted">Optional description of the VRF purpose and usage (max 250 characters)</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Response Area -->
+                                <div id="vrfActionResponse" class="alert" style="display: none;"></div>
+
+                                <!-- Action Buttons -->
+                                <div class="card shadow-sm mb-4">
+                                    <div class="card-body">
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-info">
+                                                <i class="bi bi-git me-2"></i>Merge VRF
+                                            </button>
+                                            <button type="reset" class="btn btn-outline-secondary">
+                                                <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Form
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Networks Page -->
+                <div id="page-action-networks" class="page-content">
+                    <div class="page-header mb-4">
+                        <h2><i class="bi bi-diagram-3 me-2"></i>Networks Actions</h2>
+                        <p class="text-muted">Create and manage network configurations</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-10 mx-auto">
+                            <form id="networkActionForm">
+                                <!-- Network Configuration -->
+                                <div class="card shadow-sm mb-4">
+                                    <div class="card-header bg-success text-white">
+                                        <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Network Configuration</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Network Name -->
+                                        <div class="mb-3">
+                                            <label for="networkName" class="form-label fw-bold">
+                                                <i class="bi bi-tag text-success me-2"></i>Network Name
+                                            </label>
+                                            <input type="text" class="form-control" id="networkName" name="name" placeholder="Enter network name" required>
+                                            <small class="form-text text-muted">Unique identifier for the network instance</small>
+                                        </div>
+
+                                        <!-- VRF Name -->
+                                        <div class="mb-3">
+                                            <label for="networkVrfName" class="form-label fw-bold">
+                                                <i class="bi bi-bezier2 text-success me-2"></i>VRF Name
+                                            </label>
+                                            <select class="form-select" id="networkVrfName" name="vrf_name" required>
+                                                <option value="">Select a VRF</option>
+                                                <!-- VRF options will be populated from /api/v1/nac/vrfs -->
+                                            </select>
+                                            <small class="form-text text-muted">Associated VRF for this network (loaded from NaC API)</small>
+                                        </div>
+
+                                        <!-- Network ID -->
+                                        <div class="mb-3">
+                                            <label for="netId" class="form-label fw-bold">
+                                                <i class="bi bi-hash text-success me-2"></i>Network ID
+                                            </label>
+                                            <input type="number" class="form-control" id="netId" name="net_id" placeholder="Enter network ID" required>
+                                            <small class="form-text text-muted">Network identifier (numeric)</small>
+                                        </div>
+
+                                        <!-- VLAN ID -->
+                                        <div class="mb-3">
+                                            <label for="networkVlanId" class="form-label fw-bold">
+                                                <i class="bi bi-hash text-success me-2"></i>VLAN ID
+                                            </label>
+                                            <input type="number" class="form-control" id="networkVlanId" name="vlan_id" placeholder="Enter VLAN ID" min="1" max="4094" required>
+                                            <small class="form-text text-muted">VLAN identifier (1-4094)</small>
+                                        </div>
+
+                                        <!-- VLAN Name -->
+                                        <div class="mb-3">
+                                            <label for="vlanName" class="form-label fw-bold">
+                                                <i class="bi bi-diagram-2 text-success me-2"></i>VLAN Name
+                                            </label>
+                                            <input type="text" class="form-control" id="vlanName" name="vlan_name" placeholder="Enter VLAN name">
+                                            <small class="form-text text-muted">Optional descriptive name for the VLAN</small>
+                                        </div>
+
+                                        <!-- Gateway IP Address -->
+                                        <div class="mb-3">
+                                            <label for="gwIpAddress" class="form-label fw-bold">
+                                                <i class="bi bi-router text-success me-2"></i>Gateway IP Address
+                                            </label>
+                                            <input type="text" class="form-control" id="gwIpAddress" name="gw_ip_address" placeholder="e.g., 192.168.1.1/24">
+                                            <small class="form-text text-muted">Optional IPv4 gateway address with subnet mask (CIDR notation)</small>
+                                        </div>
+
+                                        <!-- Gateway IPv6 Address -->
+                                        <div class="mb-3">
+                                            <label for="gwIpv6Address" class="form-label fw-bold">
+                                                <i class="bi bi-router text-success me-2"></i>Gateway IPv6 Address
+                                            </label>
+                                            <input type="text" class="form-control" id="gwIpv6Address" name="gw_ipv6_address" placeholder="e.g., 2001:db8::1/64">
+                                            <small class="form-text text-muted">Optional IPv6 gateway address with prefix length</small>
+                                        </div>
+
+                                        <!-- Secondary IP Address -->
+                                        <div class="mb-3">
+                                            <label for="secondaryIpAddress" class="form-label fw-bold">
+                                                <i class="bi bi-hdd-network text-success me-2"></i>Secondary IP Address
+                                            </label>
+                                            <input type="text" class="form-control" id="secondaryIpAddress" name="secondary_ip_address" placeholder="e.g., 192.168.1.2/24">
+                                            <small class="form-text text-muted">Optional secondary IPv4 address with subnet mask</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Response Area -->
+                                <div id="networkActionResponse" class="alert" style="display: none;"></div>
+
+                                <!-- Action Buttons -->
+                                <div class="card shadow-sm mb-4">
+                                    <div class="card-body">
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="bi bi-git me-2"></i>Merge Network
+                                            </button>
+                                            <button type="reset" class="btn btn-outline-secondary">
+                                                <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Form
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>

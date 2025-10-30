@@ -29,6 +29,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof initializeNacYamlCopyHandlers === 'function') {
         initializeNacYamlCopyHandlers();
     }
+
+    // Initialize NaC action form handlers
+    if (typeof initializeNacActionFormHandlers === 'function') {
+        initializeNacActionFormHandlers();
+    }
 });
 
 
@@ -134,6 +139,11 @@ function loadPageContent(page, parent) {
 
         // Initialize table for this page if not already done
         initializeTableForPage(page);
+
+        // Load VRF dropdown for action-networks page
+        if (page === 'action-networks' && typeof loadVrfDropdown === 'function') {
+            loadVrfDropdown();
+        }
 
         // Smooth scroll to top of content
         window.scrollTo({ top: 0, behavior: 'smooth' });
