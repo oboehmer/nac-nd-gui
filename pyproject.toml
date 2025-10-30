@@ -1,0 +1,59 @@
+[project]
+name = "nac-nd-gui"
+version = "0.1.0"
+description = "Network as Code (NaC) GUI with Nexus Dashboard integration"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    {name = "Rafael Muller", email = "rmuller@cisco.com"}
+]
+dependencies = [
+    "flask>=3.0.3",
+    "python-dotenv>=1.0.1",
+    "nac-yaml>=1.1.1",
+    "pyyaml>=6.0.1",
+    "requests>=2.31.0",
+    "flasgger>=0.9.7.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "black>=24.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.8.0",
+]
+
+[project.scripts]
+nac-nd-gui = "nac_nd_gui.app:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/nac_nd_gui"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I", "N", "W", "B", "C90"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=nac_nd_gui --cov-report=term-missing"

@@ -58,6 +58,67 @@ function initializeNacTableForPage(page, commonConfig, tableInstances) {
         });
     }
 
+    // Initialize VRF Instances Table (Action VRFs page)
+    if (page === 'action-vrfs' && document.getElementById('actionVrfInstancesTable') && !tableInstances['actionVrfInstancesTable']) {
+        tableInstances['actionVrfInstancesTable'] = new Tabulator("#actionVrfInstancesTable", {
+            ...commonConfig,
+            ajaxURL: "/api/v1/nac/vrfs",
+            columns: [
+                {
+                    title: "VRF Name",
+                    field: "name",
+                    formatter: (cell) => `<strong>${cell.getValue()}</strong>`,
+                    sorter: "string",
+                    minWidth: 200
+                },
+                {
+                    title: "VRF ID",
+                    field: "vrf_id",
+                    sorter: "number",
+                    minWidth: 100
+                },
+                {
+                    title: "VLAN ID",
+                    field: "vlan_id",
+                    sorter: "number",
+                    minWidth: 100
+                },
+                {
+                    title: "VRF Attach Group",
+                    field: "vrf_attach_group",
+                    sorter: "string",
+                    minWidth: 200
+                },
+                {
+                    title: "View YAML",
+                    formatter: (cell) => {
+                        const rowData = cell.getRow().getData();
+                        const vrfName = rowData.name;
+                        return `
+                            <button class="btn btn-sm btn-outline-info view-action-vrf-yaml"
+                                    data-vrf-name="${vrfName}"
+                                    title="View YAML">
+                                <i class="bi bi-file-earmark-code"></i>
+                            </button>
+                        `;
+                    },
+                    headerSort: false,
+                    hozAlign: "center",
+                    minWidth: 100
+                }
+            ],
+            initialSort: [{ column: "name", dir: "asc" }]
+        });
+
+        // Add refresh button handler for action VRFs
+        const refreshBtn = document.getElementById('refreshActionVrfsBtn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function() {
+                tableInstances['actionVrfInstancesTable'].setData("/api/v1/nac/vrfs");
+            });
+        }
+    }
+
     // Initialize Networks Table (Networks page)
     if (page === 'networks' && document.getElementById('networksTable') && !tableInstances['networksTable']) {
         tableInstances['networksTable'] = new Tabulator("#networksTable", {
@@ -109,6 +170,67 @@ function initializeNacTableForPage(page, commonConfig, tableInstances) {
             ],
             initialSort: [{ column: "name", dir: "asc" }]
         });
+    }
+
+    // Initialize Network Instances Table (Action Networks page)
+    if (page === 'action-networks' && document.getElementById('actionNetworkInstancesTable') && !tableInstances['actionNetworkInstancesTable']) {
+        tableInstances['actionNetworkInstancesTable'] = new Tabulator("#actionNetworkInstancesTable", {
+            ...commonConfig,
+            ajaxURL: "/api/v1/nac/networks",
+            columns: [
+                {
+                    title: "Network Name",
+                    field: "name",
+                    formatter: (cell) => `<strong>${cell.getValue()}</strong>`,
+                    sorter: "string",
+                    minWidth: 200
+                },
+                {
+                    title: "Network ID",
+                    field: "network_id",
+                    sorter: "number",
+                    minWidth: 100
+                },
+                {
+                    title: "VLAN ID",
+                    field: "vlan_id",
+                    sorter: "number",
+                    minWidth: 100
+                },
+                {
+                    title: "VRF Name",
+                    field: "vrf_name",
+                    sorter: "string",
+                    minWidth: 200
+                },
+                {
+                    title: "View YAML",
+                    formatter: (cell) => {
+                        const rowData = cell.getRow().getData();
+                        const networkName = rowData.name;
+                        return `
+                            <button class="btn btn-sm btn-outline-success view-action-network-yaml"
+                                    data-network-name="${networkName}"
+                                    title="View YAML">
+                                <i class="bi bi-file-earmark-code"></i>
+                            </button>
+                        `;
+                    },
+                    headerSort: false,
+                    hozAlign: "center",
+                    minWidth: 100
+                }
+            ],
+            initialSort: [{ column: "name", dir: "asc" }]
+        });
+
+        // Add refresh button handler for action Networks
+        const refreshBtn = document.getElementById('refreshActionNetworksBtn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function() {
+                tableInstances['actionNetworkInstancesTable'].setData("/api/v1/nac/networks");
+            });
+        }
     }
 
     // Initialize Switches Table (Switches page)
@@ -590,6 +712,47 @@ async function showVrfYamlModal(vrfName, tableInstances) {
 }
 
 /**
+ * Show VRF YAML modal (Action VRFs page)
+ */
+async function showActionVrfYamlModal(vrfName, tableInstances) {
+    try {
+        // Get the VRF data from the action VRF table
+        const vrfTable = tableInstances['actionVrfInstancesTable'];
+        if (!vrfTable) {
+            console.error('Action VRF table not found');
+            return;
+        }
+
+        // Find the VRF row data
+        const rows = vrfTable.getData();
+        const vrfData = rows.find(row => row.name === vrfName);
+
+        if (!vrfData) {
+            console.error(`VRF ${vrfName} not found in action VRF table data`);
+            return;
+        }
+
+        // Use the complete original API data instead of just table fields
+        const completeData = vrfData._originalData || vrfData;
+
+        // Convert complete VRF data to YAML format
+        const yamlContent = convertToYaml(completeData);
+
+        // Update modal content
+        document.querySelector('#vrfYamlName span').textContent = vrfName;
+        document.getElementById('vrfYamlContent').textContent = yamlContent;
+
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('vrfYamlModal'));
+        modal.show();
+
+    } catch (error) {
+        console.error('Error showing Action VRF YAML modal:', error);
+        alert('Failed to display VRF YAML. Please try again.');
+    }
+}
+
+/**
  * Show Network YAML modal
  */
 async function showNetworkYamlModal(networkName, tableInstances) {
@@ -619,6 +782,47 @@ async function showNetworkYamlModal(networkName, tableInstances) {
 
     } catch (error) {
         console.error('Error showing Network YAML modal:', error);
+        alert('Failed to display Network YAML. Please try again.');
+    }
+}
+
+/**
+ * Show Network YAML modal (Action Networks page)
+ */
+async function showActionNetworkYamlModal(networkName, tableInstances) {
+    try {
+        // Get the Network data from the action Network table
+        const networkTable = tableInstances['actionNetworkInstancesTable'];
+        if (!networkTable) {
+            console.error('Action Network table not found');
+            return;
+        }
+
+        // Find the Network row data
+        const rows = networkTable.getData();
+        const networkData = rows.find(row => row.name === networkName);
+
+        if (!networkData) {
+            console.error(`Network ${networkName} not found in action Network table data`);
+            return;
+        }
+
+        // Use the complete original API data instead of just table fields
+        const completeData = networkData._originalData || networkData;
+
+        // Convert complete Network data to YAML format
+        const yamlContent = convertToYaml(completeData);
+
+        // Update modal content
+        document.querySelector('#networkYamlName span').textContent = networkName;
+        document.getElementById('networkYamlContent').textContent = yamlContent;
+
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('networkYamlModal'));
+        modal.show();
+
+    } catch (error) {
+        console.error('Error showing Action Network YAML modal:', error);
         alert('Failed to display Network YAML. Please try again.');
     }
 }
@@ -787,18 +991,32 @@ async function loadVrfDropdown() {
  */
 function initializeNacYamlEventListeners(tableInstances) {
     document.addEventListener('click', function(event) {
-        // VRF YAML buttons
+        // VRF YAML buttons (NaC YAML VRF page)
         if (event.target.closest('.view-vrf-yaml')) {
             const button = event.target.closest('.view-vrf-yaml');
             const vrfName = button.dataset.vrfName;
             showVrfYamlModal(vrfName, tableInstances);
         }
 
-        // Network YAML buttons
+        // VRF YAML buttons (Action VRFs page)
+        if (event.target.closest('.view-action-vrf-yaml')) {
+            const button = event.target.closest('.view-action-vrf-yaml');
+            const vrfName = button.dataset.vrfName;
+            showActionVrfYamlModal(vrfName, tableInstances);
+        }
+
+        // Network YAML buttons (NaC YAML Networks page)
         if (event.target.closest('.view-network-yaml')) {
             const button = event.target.closest('.view-network-yaml');
             const networkName = button.dataset.networkName;
             showNetworkYamlModal(networkName, tableInstances);
+        }
+
+        // Network YAML buttons (Action Networks page)
+        if (event.target.closest('.view-action-network-yaml')) {
+            const button = event.target.closest('.view-action-network-yaml');
+            const networkName = button.dataset.networkName;
+            showActionNetworkYamlModal(networkName, tableInstances);
         }
 
         // Switch YAML buttons

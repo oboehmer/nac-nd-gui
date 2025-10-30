@@ -1,0 +1,81 @@
+<svg width="1200" height="120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bannerBg" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0d47a1;stop-opacity:0.95" />
+      <stop offset="50%" style="stop-color:#1565c0;stop-opacity:0.95" />
+      <stop offset="100%" style="stop-color:#0d47a1;stop-opacity:0.95" />
+    </linearGradient>
+    <linearGradient id="bannerAccent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00bcd4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00e5ff;stop-opacity:1" />
+    </linearGradient>
+    <filter id="bannerGlow">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="120" fill="url(#bannerBg)"/>
+
+  <!-- Subtle grid pattern -->
+  <g opacity="0.08">
+    <line x1="0" y1="40" x2="1200" y2="40" stroke="#fff" stroke-width="1"/>
+    <line x1="0" y1="80" x2="1200" y2="80" stroke="#fff" stroke-width="1"/>
+  </g>
+
+  <!-- Left network decoration -->
+  <g opacity="0.5">
+    <circle cx="60" cy="35" r="4" fill="#00e5ff"/>
+    <circle cx="90" cy="60" r="6" fill="#00bcd4" filter="url(#bannerGlow)"/>
+    <circle cx="60" cy="85" r="4" fill="#00e5ff"/>
+    <line x1="60" y1="35" x2="90" y2="60" stroke="#00bcd4" stroke-width="2"/>
+    <line x1="60" y1="85" x2="90" y2="60" stroke="#00bcd4" stroke-width="2"/>
+  </g>
+
+  <!-- Main Text: NaC -->
+  <text x="480" y="75" font-family="Arial, Helvetica, sans-serif" font-size="50" font-weight="bold"
+        fill="#ffffff" text-anchor="end" letter-spacing="4">
+    NaC
+  </text>
+
+  <!-- Divider -->
+  <rect x="500" y="35" width="3" height="50" fill="url(#bannerAccent)" rx="1.5"/>
+
+  <!-- Subtitle -->
+  <text x="520" y="58" font-family="Arial, Helvetica, sans-serif" font-size="20"
+        fill="#ffffff" text-anchor="start" letter-spacing="2">
+    Network as Code
+  </text>
+  <text x="520" y="82" font-family="Arial, Helvetica, sans-serif" font-size="14"
+        fill="#00e5ff" text-anchor="start" letter-spacing="1">
+    Nexus Dashboard Integration
+  </text>
+
+  <!-- Right network decoration -->
+  <g opacity="0.5">
+    <circle cx="1140" cy="35" r="4" fill="#00e5ff"/>
+    <circle cx="1110" cy="60" r="6" fill="#00bcd4" filter="url(#bannerGlow)"/>
+    <circle cx="1140" cy="85" r="4" fill="#00e5ff"/>
+    <line x1="1140" y1="35" x2="1110" y2="60" stroke="#00bcd4" stroke-width="2"/>
+    <line x1="1140" y1="85" x2="1110" y2="60" stroke="#00bcd4" stroke-width="2"/>
+  </g>
+
+  <!-- Bottom accent line -->
+  <rect y="118" width="1200" height="2" fill="url(#bannerAccent)"/>
+
+  <!-- Animated data flow indicators -->
+  <g opacity="0.4">
+    <circle cx="200" cy="60" r="3" fill="#00e5ff">
+      <animate attributeName="cx" values="200;400;200" dur="4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="800" cy="60" r="3" fill="#00e5ff">
+      <animate attributeName="cx" values="800;1000;800" dur="4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="4s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+</svg>

@@ -2,12 +2,7 @@
 Nexus Dashboard API endpoints
 """
 from flask import Blueprint, jsonify
-import sys
-import os
-
-# Add parent directory to path to import nexus_dashboard module
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from nexus_dashboard import get_nexus_client
+from ...nexus_dashboard import get_nexus_client
 
 nexus_bp = Blueprint('nexus', __name__)
 

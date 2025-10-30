@@ -1,0 +1,60 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="iconBgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d47a1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1976d2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="iconAccent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00bcd4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00e5ff;stop-opacity:1" />
+    </linearGradient>
+    <filter id="iconGlow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="200" height="200" fill="url(#iconBgGradient)" rx="20"/>
+
+  <!-- Network mesh in background -->
+  <g opacity="0.2" stroke="#ffffff" stroke-width="1" fill="none">
+    <circle cx="100" cy="100" r="70"/>
+    <circle cx="100" cy="100" r="50"/>
+    <circle cx="100" cy="100" r="30"/>
+    <line x1="100" y1="30" x2="100" y2="170"/>
+    <line x1="30" y1="100" x2="170" y2="100"/>
+    <line x1="45" y1="45" x2="155" y2="155"/>
+    <line x1="155" y1="45" x2="45" y2="155"/>
+  </g>
+
+  <!-- Network nodes -->
+  <g opacity="0.6">
+    <circle cx="100" cy="40" r="6" fill="#00e5ff" filter="url(#iconGlow)"/>
+    <circle cx="160" cy="100" r="6" fill="#00e5ff" filter="url(#iconGlow)"/>
+    <circle cx="100" cy="160" r="6" fill="#00e5ff" filter="url(#iconGlow)"/>
+    <circle cx="40" cy="100" r="6" fill="#00e5ff" filter="url(#iconGlow)"/>
+  </g>
+
+  <!-- Center hexagon with NaC -->
+  <g>
+    <polygon points="100,60 130,77.5 130,112.5 100,130 70,112.5 70,77.5"
+             fill="none" stroke="url(#iconAccent)" stroke-width="3"/>
+
+    <text x="100" y="105" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="bold"
+          fill="#ffffff" text-anchor="middle" letter-spacing="2">
+      NaC
+    </text>
+  </g>
+
+  <!-- Corner accents -->
+  <g stroke="#00e5ff" stroke-width="2" fill="none" opacity="0.5">
+    <path d="M 20,20 L 35,20 L 35,25 M 20,20 L 20,35"/>
+    <path d="M 180,20 L 165,20 L 165,25 M 180,20 L 180,35"/>
+    <path d="M 20,180 L 35,180 L 35,175 M 20,180 L 20,165"/>
+    <path d="M 180,180 L 165,180 L 165,175 M 180,180 L 180,165"/>
+  </g>
+</svg>

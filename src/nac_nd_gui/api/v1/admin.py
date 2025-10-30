@@ -5,7 +5,7 @@ from flask import Blueprint, jsonify, request
 import os
 import yaml
 import requests
-from nac_api import get_nac_client
+from ...nac_api import get_nac_client
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -95,7 +95,9 @@ def save_admin_config():
         data = request.get_json()
 
         # Create yaml directory if it doesn't exist
-        yaml_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'yaml')
+        # Navigate from src/nac_nd_gui/api/v1/ up to project root, then to yaml/
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
+        yaml_dir = os.path.join(project_root, 'yaml')
         os.makedirs(yaml_dir, exist_ok=True)
 
         # Configuration file path
@@ -140,7 +142,9 @@ def load_admin_config():
     """Load current API configuration from YAML file"""
     try:
         # Configuration file path
-        yaml_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'yaml')
+        # Navigate from src/nac_nd_gui/api/v1/ up to project root, then to yaml/
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
+        yaml_dir = os.path.join(project_root, 'yaml')
         config_path = os.path.join(yaml_dir, 'config.yaml')
 
         # Check if config file exists
@@ -192,7 +196,9 @@ def clear_admin_config():
     """Clear API configuration from YAML file"""
     try:
         # Configuration file path
-        yaml_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'yaml')
+        # Navigate from src/nac_nd_gui/api/v1/ up to project root, then to yaml/
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
+        yaml_dir = os.path.join(project_root, 'yaml')
         config_path = os.path.join(yaml_dir, 'config.yaml')
 
         # Remove the config file if it exists

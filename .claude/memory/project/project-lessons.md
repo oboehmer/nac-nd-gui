@@ -54,6 +54,14 @@ See global memory for universal Flask patterns (REST API, Bootstrap CDN, Fetch A
 **Project Context**: Applied to app.js refinement with controlled testing
 **See Global**: Iterative Frontend Refinement Pattern
 
+### Memory Archival Workflow
+**Pattern**: Systematic capacity management through monitoring → identification → archival → validation
+**Implementation**: Monitor file sizes (wc -c); identify archival candidates (age, specificity, reuse); create dated archive structure (YYYY-QQ); archive with context; update source with references; re-measure and validate
+**Results**: Reduced global lessons-learned.md from 91.5%→76.9% capacity by archiving 8 Terraform patterns (1,192 bytes / 15.9%)
+**Context**: Applied when any memory file exceeds 85% capacity threshold
+**Added**: [2025-10-30T15:30:00Z]
+**Additional Details**: Created ~/.claude/memory/archive/2025-Q3/terraform-infrastructure-patterns.md with full pattern content preserved for searchability while reducing active memory footprint
+
 ### API Connection Testing Implementation
 **Implementation**: Configuration-driven connection test endpoints with comprehensive error handling
 **Project Context**: /test-nac-connection (Bearer auth), /test-nd-connection (header auth), /test-nac-api-connection (multi-provider SCM auth) endpoints in admin.py
@@ -72,3 +80,42 @@ See global memory for universal Flask patterns (REST API, Bootstrap CDN, Fetch A
 **SCM Support**: GitHub, GitLab, Bitbucket (cloud/local), Azure DevOps via provider-specific header construction
 **See Global**: API Client with Configuration Management Pattern
 **Added**: [2025-10-23T17:30:00Z]
+
+### Python Package Modernization
+**Pattern**: Migration from flat structure to src/ layout with modern packaging standards
+**Implementation**: Created pyproject.toml (PEP 517/518); migrated to src/nac_nd_gui/ package; adopted uv package manager; removed legacy requirements.txt; added tool configurations (black, ruff, mypy, pytest)
+**Project Context**: Refactored flat Flask app to proper package structure with __init__.py exports, relative imports, and CLI entry point
+**Results**: Modern, installable Python package; improved dependency management; better IDE support; standardized tooling configuration
+**See Global**: Modern Python Package Structure Pattern (promoted 2025-10-30)
+**Added**: [2025-10-30T18:55:00Z]
+**Additional Details**:
+- Package structure: src/nac_nd_gui/ with api/, static/, templates/ subdirectories
+- Entry point: nac-nd-gui CLI command via project.scripts in pyproject.toml
+- Import updates: .api.v1 relative imports, main() function for entry point
+- Version control: Updated .gitignore for .venv/, uv.lock, .python-version.lock
+
+### SVG Logo and Banner Integration
+**Pattern**: Incremental SVG asset integration with semantic CSS classes and comprehensive documentation
+**Implementation**: Created custom SVG assets (nac-logo.svg, nac-banner.svg, nac-icon.svg); integrated Cisco branding; applied semantic CSS classes (nac-banner-nav, nac-banner-wrapper); tested with uv run python; documented in LOGO-INTEGRATION.md
+**Project Context**: Flask template (index.html) with Bootstrap 5 navbar; sidebar with Cisco logo; main landing page with NaC logo; favicon integration
+**Results**: Professional branding throughout application; scalable SVG assets for all screen sizes; maintainable with semantic CSS naming; documented integration process
+**Added**: [2025-10-30T19:58:00Z]
+**Additional Details**:
+- SVG assets: nac-logo.svg (main landing), nac-banner.svg (top nav), nac-icon.svg (favicon)
+- Cisco branding: Cisco_Logo_no_TM_White-RGB_264px.png (sidebar header)
+- Semantic CSS: .nac-banner-nav, .nac-banner-wrapper for consistent styling
+- Testing: Integration verified with Flask app load test
+- Documentation: LOGO-INTEGRATION.md tracks all asset specifications and implementation status
+
+### Dual Configuration Method Documentation
+**Pattern**: Document complex integrations with both GUI and manual configuration methods, plus architecture diagrams and field-level descriptions
+**Implementation**: README sections with Option A (Web Admin Panel - step-by-step GUI instructions) and Option B (Manual File Editing - complete YAML examples with field description tables); architecture diagrams showing data flow; example workflows
+**Project Context**: API integration configuration (NaC API + Nexus Dashboard); 10 configuration fields with descriptions, examples, and validation requirements
+**Results**: Users can choose configuration method that fits their workflow; field-level table provides quick reference; architecture diagram clarifies system components; comprehensive coverage reduces support questions
+**Added**: [2025-10-30T20:08:00Z]
+**Additional Details**:
+- Configuration methods: Web admin panel (recommended for beginners) vs manual YAML editing (preferred by automation/power users)
+- Field descriptions: Markdown table with Field | Description | Example columns for all 10 configuration parameters
+- Architecture diagram: ASCII art showing NaC ND GUI → NaC API → SCM (GitHub) with bidirectional data flow
+- Workflow example: 6-step user workflow from GUI form to Git repository commit
+- Benefits section: GitOps, version control, validation, automation, multi-provider support (5 key benefits explained)

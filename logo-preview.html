@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NaC Logo Preview</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .logo-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .logo-section h2 {
+            color: #0d47a1;
+            margin-top: 0;
+            font-size: 1.8em;
+            border-bottom: 3px solid #00bcd4;
+            padding-bottom: 10px;
+        }
+        .logo-section p {
+            color: #666;
+            margin: 10px 0;
+        }
+        .logo-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .dark-bg {
+            background: #1a1a1a;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        .specs {
+            background: #e3f2fd;
+            border-left: 4px solid #0d47a1;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+        .specs ul {
+            color: #0d47a1;
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .specs li {
+            margin: 5px 0;
+        }
+        code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #d32f2f;
+            font-family: 'Courier New', monospace;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 NaC Graphics Suite</h1>
+
+        <div class="logo-section">
+            <h2>1. Main Logo (nac-logo.svg)</h2>
+            <p>Primary branding graphic for README, presentations, and documentation.</p>
+            <div class="logo-display">
+                <img src="src/nac_nd_gui/static/images/nac-logo.svg" alt="NaC Main Logo">
+            </div>
+            <div class="specs">
+                <strong>Specifications:</strong>
+                <ul>
+                    <li>Dimensions: 800 × 300 pixels</li>
+                    <li>Format: SVG (vector, scalable)</li>
+                    <li>Features: Network topology, animated data flow, gradient backgrounds</li>
+                    <li>Best for: README headers, splash screens, presentations</li>
+                </ul>
+                <strong>Usage:</strong>
+                <code>&lt;img src="path/nac-logo.svg" alt="NaC" width="600"/&gt;</code>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="logo-section">
+                <h2>2. App Icon (nac-icon.svg)</h2>
+                <p>Square icon for favicons, app icons, and small displays.</p>
+                <div class="logo-display dark-bg">
+                    <img src="src/nac_nd_gui/static/images/nac-icon.svg" alt="NaC Icon" style="max-width: 200px;">
+                </div>
+                <div class="specs">
+                    <strong>Specifications:</strong>
+                    <ul>
+                        <li>Dimensions: 200 × 200 pixels</li>
+                        <li>Format: SVG</li>
+                        <li>Features: Hexagonal center, network mesh</li>
+                        <li>Best for: Favicons, app icons, sidebar</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="logo-section">
+                <h2>3. Banner (nac-banner.svg)</h2>
+                <p>Wide banner for website headers and navigation.</p>
+                <div class="logo-display">
+                    <img src="src/nac_nd_gui/static/images/nac-banner.svg" alt="NaC Banner">
+                </div>
+                <div class="specs">
+                    <strong>Specifications:</strong>
+                    <ul>
+                        <li>Dimensions: 1200 × 120 pixels</li>
+                        <li>Format: SVG</li>
+                        <li>Features: Animated elements, subtle grid</li>
+                        <li>Best for: Website headers, navigation bars</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="logo-section">
+            <h2>📋 File Locations</h2>
+            <div class="specs">
+                <ul>
+                    <li><code>src/nac_nd_gui/static/images/nac-logo.svg</code> - Main logo</li>
+                    <li><code>src/nac_nd_gui/static/images/nac-icon.svg</code> - Square icon</li>
+                    <li><code>src/nac_nd_gui/static/images/nac-banner.svg</code> - Wide banner</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="logo-section">
+            <h2>🎨 Design Features</h2>
+            <div class="specs">
+                <strong>Color Palette:</strong>
+                <ul>
+                    <li>Primary Blue: <code>#0d47a1</code> → <code>#1976d2</code> (gradient)</li>
+                    <li>Accent Cyan: <code>#00bcd4</code> → <code>#00e5ff</code> (gradient)</li>
+                    <li>White: <code>#ffffff</code> (text)</li>
+                </ul>
+                <strong>Visual Elements:</strong>
+                <ul>
+                    <li>✨ Network topology with nodes and connections</li>
+                    <li>✨ Circuit board style corner accents</li>
+                    <li>✨ Animated data flow indicators (pulsing circles)</li>
+                    <li>✨ Gradient backgrounds for depth</li>
+                    <li>✨ Glow effects on key elements</li>
+                    <li>✨ Binary code patterns (subtle)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

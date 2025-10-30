@@ -2,7 +2,7 @@ from flask import Flask, render_template, jsonify
 from dotenv import load_dotenv
 import os
 from flasgger import Swagger
-from api.v1 import register_v1_blueprints
+from .api.v1 import register_v1_blueprints
 
 load_dotenv()
 
@@ -87,5 +87,10 @@ def internal_error(error):
     return jsonify({'error': 'Internal server error', 'status': 'error'}), 500
 
 
-if __name__ == '__main__':
+def main():
+    """Main entry point for the application"""
     app.run(debug=True, host='0.0.0.0', port=9999)
+
+
+if __name__ == '__main__':
+    main()

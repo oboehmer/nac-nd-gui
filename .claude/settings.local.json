@@ -6,7 +6,10 @@
       "Bash(python:*)",
       "Bash(lsof:*)",
       "Bash(awk:*)",
-      "Bash(xargs kill:*)"
+      "Bash(xargs kill:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv run python:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []

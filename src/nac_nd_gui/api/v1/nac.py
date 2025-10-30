@@ -2,7 +2,7 @@
 NaC API endpoints for UI
 """
 from flask import Blueprint, jsonify, request
-from nac_api import get_nac_client
+from ...nac_api import get_nac_client
 import logging
 
 logger = logging.getLogger(__name__)
@@ -344,29 +344,17 @@ def merge_vrf():
         if 'vrf_description' in data and data['vrf_description']:
             vrf_data['vrf_description'] = data['vrf_description']
 
-        # Build merge operation payload
-        merge_payload = {
-            "operation": {
-                "type": "merge",
-                "path": "vxlan/overlay/vrfs",
-                "change_message": data.get('change_message', f"Adding VRF {data['name']}"),
-                "data": [vrf_data],
-                "apply": data.get('apply', False)
-            }
-        }
+        logger.info(f"Merging VRF: {vrf_data}")
 
-        # Add optional operation fields if provided
-        if 'apply_message' in data and data['apply_message']:
-            merge_payload['operation']['apply_message'] = data['apply_message']
-
-        # Add source information if provided
-        if 'source' in data:
-            merge_payload['source'] = data['source']
-
-        logger.info(f"Merging VRF with payload: {merge_payload}")
-
-        # Call NaC API merge endpoint
-        response = client.post('/api/v1/operations/merge', data=merge_payload)
+        # Call NaC API merge operation using the client's merge_operation method
+        response = client.merge_operation(
+            path='vxlan/overlay/vrfs',
+            data=vrf_data,
+            change_message=data.get('change_message', f"Adding VRF {data['name']}"),
+            apply=data.get('apply', False),
+            apply_message=data.get('apply_message'),
+            source=data.get('source')
+        )
 
         if response:
             logger.info(f"VRF merged successfully: {data['name']}")
@@ -520,29 +508,17 @@ def merge_network():
         if 'secondary_ip_address' in data and data['secondary_ip_address']:
             network_data['secondary_ip_address'] = data['secondary_ip_address']
 
-        # Build merge operation payload
-        merge_payload = {
-            "operation": {
-                "type": "merge",
-                "path": "vxlan/overlay/networks",
-                "change_message": data.get('change_message', f"Adding network {data['name']}"),
-                "data": [network_data],
-                "apply": data.get('apply', False)
-            }
-        }
+        logger.info(f"Merging Network: {network_data}")
 
-        # Add optional operation fields if provided
-        if 'apply_message' in data and data['apply_message']:
-            merge_payload['operation']['apply_message'] = data['apply_message']
-
-        # Add source information if provided
-        if 'source' in data:
-            merge_payload['source'] = data['source']
-
-        logger.info(f"Merging Network with payload: {merge_payload}")
-
-        # Call NaC API merge endpoint
-        response = client.post('/api/v1/operations/merge', data=merge_payload)
+        # Call NaC API merge operation using the client's merge_operation method
+        response = client.merge_operation(
+            path='vxlan/overlay/networks',
+            data=network_data,
+            change_message=data.get('change_message', f"Adding network {data['name']}"),
+            apply=data.get('apply', False),
+            apply_message=data.get('apply_message'),
+            source=data.get('source')
+        )
 
         if response:
             logger.info(f"Network merged successfully: {data['name']}")

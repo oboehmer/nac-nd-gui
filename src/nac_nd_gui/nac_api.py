@@ -49,7 +49,9 @@ class NacApiClient:
     def _load_config(self):
         """Load configuration from YAML file"""
         try:
-            config_path = os.path.join(os.path.dirname(__file__), 'yaml', 'config.yaml')
+            # Navigate from src/nac_nd_gui/ up to project root, then to yaml/
+            project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            config_path = os.path.join(project_root, 'yaml', 'config.yaml')
 
             if not os.path.exists(config_path):
                 logger.warning("Configuration file not found. Please configure via Admin panel.")
@@ -687,6 +689,232 @@ class NacApiClient:
                 'status': 'error',
                 'message': f'Connection test failed: {str(e)}'
             }
+
+    # Generic NaC API operation methods
+
+    def _operation_request(self, operation_type: str, path: str, data: Any,
+                          change_message: Optional[str] = None,
+                          apply: bool = False,
+                          apply_message: Optional[str] = None,
+                          source: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+        """
+        Generic method to handle NaC API operations
+
+        Args:
+            operation_type: Type of operation (batch, merge, replace, delete, create, apply)
+            path: Path within the data model (e.g., 'vxlan/overlay/vrfs')
+            data: Data payload for the operation
+            change_message: Optional message describing the change
+            apply: Whether to apply the changeset immediately
+            apply_message: Optional message for the apply operation
+            source: Optional source information
+
+        Returns:
+            Response JSON data or None if request failed
+        """
+        if not self._ensure_config():
+            return None
+
+        # Build operation payload
+        operation_payload = {
+            "operation": {
+                "type": operation_type,
+                "path": path,
+                "data": data if isinstance(data, list) else [data],
+            }
+        }
+
+        # Add optional fields
+        if change_message:
+            operation_payload["operation"]["change_message"] = change_message
+
+        if apply is not None:
+            operation_payload["operation"]["apply"] = apply
+
+        if apply_message:
+            operation_payload["operation"]["apply_message"] = apply_message
+
+        if source:
+            operation_payload["source"] = source
+
+        # Call the operation endpoint
+        endpoint = f"/api/v1/operations/{operation_type}"
+        logger.info(f"Calling {operation_type} operation on path '{path}'")
+
+        return self.post(endpoint, data=operation_payload)
+
+    def batch_operation(self, changes: list,
+                       changeset: Optional[str] = None,
+                       apply: bool = False,
+                       apply_message: Optional[str] = None,
+                       source: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+        """
+        Execute a batch operation on NaC API
+
+        Batch operations allow multiple changes (create, merge, replace, delete) to be submitted together.
+
+        Args:
+            changes: List of change dictionaries, each containing:
+                - type: Operation type (create, merge, replace, delete)
+                - path: Path within the data model (e.g., 'vxlan/overlay/vrfs')
+                - change_message: Optional message describing the change
+                - data: Data payload (for create/merge/replace operations)
+                - file: Optional file reference
+            changeset: Optional changeset identifier
+            apply: Whether to apply the changeset immediately
+            apply_message: Optional message for the apply operation
+            source: Optional source information (dict with 'name' and 'repository' keys)
+
+        Returns:
+            Response JSON data or None if request failed
+
+        Example:
+            changes = [
+                {
+                    "type": "merge",
+                    "path": "vxlan/overlay/vrfs",
+                    "change_message": "Add VRF_PROD",
+                    "data": {"name": "VRF_PROD", "vrf_id": 50001, "vlan_id": 2001}
+                },
+                {
+                    "type": "merge",
+                    "path": "vxlan/overlay/networks",
+                    "change_message": "Add NET_PROD_WEB",
+                    "data": {"name": "NET_PROD_WEB", "vrf_name": "VRF_PROD", ...}
+                }
+            ]
+            client.batch_operation(changes, apply=False)
+        """
+        if not self._ensure_config():
+            return None
+
+        # Build batch operation payload
+        batch_payload = {
+            "operation": {
+                "changes": changes,
+                "apply": apply
+            }
+        }
+
+        # Add optional fields
+        if changeset:
+            batch_payload["operation"]["changeset"] = changeset
+
+        if apply_message:
+            batch_payload["operation"]["apply_message"] = apply_message
+
+        if source:
+            batch_payload["source"] = source
+
+        # Call the batch operation endpoint
+        logger.info(f"Calling batch operation with {len(changes)} changes")
+
+        return self.post("/api/v1/operations/batch", data=batch_payload)
+
+    def merge_operation(self, path: str, data: Any,
+                       change_message: Optional[str] = None,
+                       apply: bool = False,
+                       apply_message: Optional[str] = None,
+                       source: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+        """
+        Execute a merge operation on NaC API
+
+        Args:
+            path: Path within the data model (e.g., 'vxlan/overlay/vrfs')
+            data: Data payload for the merge operation (list or single item)
+            change_message: Optional message describing the change
+            apply: Whether to apply the changeset immediately
+            apply_message: Optional message for the apply operation
+            source: Optional source information
+
+        Returns:
+            Response JSON data or None if request failed
+        """
+        return self._operation_request("merge", path, data, change_message, apply, apply_message, source)
+
+    def replace_operation(self, path: str, data: Any,
+                         change_message: Optional[str] = None,
+                         apply: bool = False,
+                         apply_message: Optional[str] = None,
+                         source: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+        """
+        Execute a replace operation on NaC API
+
+        Args:
+            path: Path within the data model (e.g., 'vxlan/overlay/vrfs')
+            data: Data payload for the replace operation (list or single item)
+            change_message: Optional message describing the change
+            apply: Whether to apply the changeset immediately
+            apply_message: Optional message for the apply operation
+            source: Optional source information
+
+        Returns:
+            Response JSON data or None if request failed
+        """
+        return self._operation_request("replace", path, data, change_message, apply, apply_message, source)
+
+    def delete_operation(self, path: str, data: Any,
+                        change_message: Optional[str] = None,
+                        apply: bool = False,
+                        apply_message: Optional[str] = None,
+                        source: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+        """
+        Execute a delete operation on NaC API
+
+        Args:
+            path: Path within the data model (e.g., 'vxlan/overlay/vrfs')
+            data: Data payload for the delete operation (list or single item)
+            change_message: Optional message describing the change
+            apply: Whether to apply the changeset immediately
+            apply_message: Optional message for the apply operation
+            source: Optional source information
+
+        Returns:
+            Response JSON data or None if request failed
+        """
+        return self._operation_request("delete", path, data, change_message, apply, apply_message, source)
+
+    def create_operation(self, path: str, data: Any,
+                        change_message: Optional[str] = None,
+                        apply: bool = False,
+                        apply_message: Optional[str] = None,
+                        source: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+        """
+        Execute a create operation on NaC API
+
+        Args:
+            path: Path within the data model (e.g., 'vxlan/overlay/vrfs')
+            data: Data payload for the create operation (list or single item)
+            change_message: Optional message describing the change
+            apply: Whether to apply the changeset immediately
+            apply_message: Optional message for the apply operation
+            source: Optional source information
+
+        Returns:
+            Response JSON data or None if request failed
+        """
+        return self._operation_request("create", path, data, change_message, apply, apply_message, source)
+
+    def apply_operation(self, path: str, data: Any,
+                       change_message: Optional[str] = None,
+                       apply: bool = False,
+                       apply_message: Optional[str] = None,
+                       source: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+        """
+        Execute an apply operation on NaC API
+
+        Args:
+            path: Path within the data model (e.g., 'vxlan/overlay/vrfs')
+            data: Data payload for the apply operation (list or single item)
+            change_message: Optional message describing the change
+            apply: Whether to apply the changeset immediately
+            apply_message: Optional message for the apply operation
+            source: Optional source information
+
+        Returns:
+            Response JSON data or None if request failed
+        """
+        return self._operation_request("apply", path, data, change_message, apply, apply_message, source)
 
     def close(self):
         """Close the session"""

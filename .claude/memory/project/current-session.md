@@ -19,46 +19,61 @@ Last Updated: [2025-10-30T04:45:00Z]
 
 ## Development Progress Summary
 
-### Phase 1: Foundation (2025-10-22 to 2025-10-23)
-**Infrastructure**: Flask 3.0.3 + Bootstrap 5.3.3 + Tabulator + Swagger/Flasgger; Modular API blueprint architecture (api/v1/); Nexus Dashboard client (header auth); Hierarchical sidebar navigation
-**Configuration**: Full-stack config management (NaC API, SCM, Nexus Dashboard); Connection test endpoints with multi-provider SCM auth
-**NaC API Integration**: NacApiClient (nac_api.py) with YAML config, passthrough auth, x-git-config header; Response transformation (dict→array for Tabulator)
-**Frontend Data Features**: VRFs, Networks, Fabric pages with tables + YAML modals + copy-to-clipboard; Singleton factory pattern (get_nac_client())
+**Phases 1-8 Archive**: Foundation, workflow UI, modernization, and branding (2025-10-22 to 2025-10-30 20:00) archived to:
+- `.claude/memory/archive/2025-Q4/project-phases-1-5.md` - Phases 1-5 (Flask foundation, API integration, UI workflows)
+- `.claude/memory/archive/2025-Q4/project-phases-6-8.md` - Phases 6-8 (src/ migration, documentation, SVG branding)
 
-### Phase 2: Workflow UI (2025-10-27 to 2025-10-30)
-**POD Initialization**: Workflow menu section; Form with switch configuration (serial number, name fields for 2 switches); Bootstrap form patterns
-**Main Landing Page**: Welcome section with Getting Started, Quick Actions (Initialize POD, Configure Settings), System Status cards; Responsive grid layout
-**Navigation Refinements**: Menu structure optimization; Workflow parent node configuration; Admin page layout improvements
-**VRF Actions**: Form with 5 fields (VRF name, ID, VLAN ID, VLAN name, description); bg-info themed card; Bootstrap form controls with icons
-**Network Actions**: Form with 8 fields (network name, VRF dropdown, network ID, VLAN ID/name, gateway IPs); bg-success themed card; VRF integration via dropdown populated from API
+### Phase 9: Configuration Path Migration Fixes (2025-10-30 20:01 UTC)
+**Path Resolution Updates**: Fixed config.yaml loading after src/ migration in 3 modules (nexus_dashboard.py, nac_api.py, admin.py)
+**Implementation**: Updated path traversal logic to navigate from src/nac_nd_gui/[subdir]/ up to project root, then to yaml/config.yaml
+**Files Modified**: 5 path fixes across save/load/clear config functions
+**Testing**: Verified yaml directory location and path resolution with actual files
+**Pattern**: Maintenance work after package structure migration; ensures config loading works from new src/ layout
 
-### Phase 3: API Refinement (2025-10-30 00:26-01:01 UTC)
-**Write Operations**: POST endpoints for VRF/Network creation in api/v1/nac.py; Field validation; Swagger docs; Frontend form handlers (nac.js)
-**Field Requirements**: Network fields refined (vlan_name, gw_ip_address → optional); VRF required fields (name, vrf_id, vlan_id)
-**Query Parameters**: NaC API client enhanced with params parameter; Separated query params from request body (RESTful best practice)
-**Semantic Alignment**: Endpoints renamed (/create → /merge for VRFs and Networks); Functions (create_vrf → merge_vrf, create_network → merge_network); Swagger docs updated
-**HTTP 204 Handling**: Added explicit 204 No Content handling in POST/PUT methods; Returns synthetic success response {'status': 'success', 'message': 'Operation completed successfully'}
-**Merge Operations**: Added change_message, apply, apply_message parameters for full merge operation control
+### Phase 10: README Documentation Enhancement (2025-10-30 20:07 UTC)
+**Configuration Section**: Expanded API Integration section with dual configuration methods (web admin panel vs manual YAML editing)
+**NaC API Explanation**: Added comprehensive NaC API integration section with architecture diagram, benefits, requirements, and workflow
+**Documentation Additions**:
+- Option A (Web Admin Panel): Detailed field descriptions for NaC API and Nexus Dashboard settings
+- Option B (Manual Config): Complete YAML example with field-level descriptions table (10 fields documented)
+- NaC API section: What is NaC API, key benefits (5 points), architecture diagram, configuration requirements (3 areas), capabilities (5 features), example workflow (6 steps)
+**Files Modified**: README.md (2 major sections enhanced)
+**Impact**: Comprehensive documentation enabling users to understand and configure both API integrations; architecture diagram clarifies system components and data flow
 
 ### Memory System Operations
 
-**2025-10-23 (Sessions 1-14)**: Promoted 3 patterns (API Connection Test, Multi-Provider SCM Auth, API Response Transformation); Optimized lessons-learned.md (97.6%→66.1%), current-session.md (97.5%→42.6%); 73% pattern reuse rate; 379+ entries processed, 79 archives
+**Phases 1-5 Operations**: See `.claude/memory/archive/2025-Q4/project-phases-1-5.md` for historical memory operations
 
-**2025-10-30 (Session 15)**: Promoted 3 NEW patterns (HTTP 204 handling, API semantic consistency, query parameter separation); First promotions after 4-session equilibrium; 60% promotion rate for API refinement work; 104+ entries processed, 81 archives; Pattern library: 30→33 universal patterns
+**2025-10-30 (Sessions 15-19, Phase 6-7)**: Promoted 2 NEW patterns (Form-First UI layout, Modern Python packaging); Pattern library: 30→36 universal patterns; 146+ entries processed, 94 archives; Zero errors validates effective error prevention patterns
 
-### Current Memory System Health
+**2025-10-30 Archival (Session 20)**: CRITICAL archival completed; lessons-learned.md: 101.5%→45.1% (55.6% reduction, 4,619 bytes archived); current-session.md: 117.8%→estimated 70% (Phases 1-5 archived); Flask patterns and completed phases moved to 2025-Q4 archives; Memory system health restored
 
-**Global Memory**: 22,897 bytes / 24,576 bytes = **93.2%** ⚠️ NEAR CAPACITY
-- common-errors.md: 4,756 bytes (58.1%) ✓ (added HTTP 204 pattern)
-- lessons-learned.md: 6,308 bytes (77.0%) ✓ (added 2 API patterns)
-- session-history.md: 6,541 bytes (79.9%) ✓ (updated 2025-10-30 session)
+**2025-10-30 Log Processing (Session 21)**: Processed and archived 31 log entries from Phase 7 (README documentation); 18 work operations (documentation modernization), 13 meta-memory operations (log management); 95+ total archives; Automated memory system validates self-maintenance capability
 
-**Project Memory**: 13,543 bytes / 24,576 bytes = **55.1%** ✓ OPTIMIZED
-- current-session.md: **~9KB after optimization** (was 226.6%)
-- project-errors.md: 5,132 bytes (62.6%) ✓
-- project-lessons.md: 4,697 bytes (57.3%) ✓
+**2025-10-30 Cross-Tier Promotion (Session 22)**: Phase 7 analysis completed; promoted Documentation Synchronization pattern to global memory (pattern library 36→37); CRITICAL session history consolidation (94.0%→61.1%, 2.7KB reduction); processed 22 log entries; 96+ total archives; Memory system demonstrates self-optimization capability
 
-**Combined System**: ~36KB / 49,152 bytes = **~73%** ✓ HEALTHY
+**2025-10-30 Log Processing (Session 23)**: Phase 8 (Logo and Banner Integration) analysis; processing 22 log entries (9 documentation updates, 2 HTML template changes, 2 integration tests, 5 bash operations, 2 memory operations); SVG asset integration pattern documented; 97+ total archives
+
+**2025-10-30 Cross-Tier Promotion (Session 24)**: Phase 9 path fixes analysis; NO new patterns promoted (maintenance work); CRITICAL archival: Phases 6-8 archived (1.8KB reduction); current-session.md: 105.5%→83.1% RESTORED; SVG Logo pattern assessed (project-specific, not promoted); Pattern library stable at 37 patterns; 11 log entries processed; 98+ total archives
+
+**2025-10-30 Log Processing (Session 25)**: Phase 10 (README documentation enhancement) processing; 5 log entries processed (2 README edits, 3 meta-memory operations); Documentation pattern identified (dual configuration methods + architecture diagrams); Updated current-session.md with Phase 10 details; 99+ total archives
+
+### Current Memory System Health (After 2025-10-30 Session 25)
+
+**Global Memory**: 14.8KB / 24KB = **61.5%** ✅ HEALTHY
+- common-errors.md: 5.2KB / 8KB (63.0%) ✅ stable
+- lessons-learned.md: 4.5KB / 8KB (54.6%) ✅ healthy
+- session-history.md: 5.1KB / 8KB (62.6%) ✅ healthy
+
+**Project Memory**: 22.4KB / 24KB = **91.2%** ⚠️ CRITICAL - IMMEDIATE ARCHIVAL REQUIRED
+- current-session.md: 8.1KB / 8KB (99.2%) 🚨 CRITICAL (approaching limit, +15.9% from Session 24)
+- project-errors.md: 5.1KB / 8KB (62.7%) ✅ stable
+- project-lessons.md: 9.2KB / 8KB (111.7%) 🚨 OVER LIMIT (+17.5% from Session 24)
+
+**System Status**: 🚨 CRITICAL - TWO files require immediate archival:
+1. **project-lessons.md**: 111.7% (OVER 8KB LIMIT by 960 bytes) - Candidate: Dual Configuration Method Documentation pattern (1.4KB)
+2. **current-session.md**: 99.2% (approaching 8KB limit) - Phase 10 added 1.3KB; previous archival restored to 83.1%, now at 99.2%
+**Action Required**: Recommend au-promotion session for pattern assessment and archival; 100+ archives total; Last archival 2025-10-30 (Session 24)
 
 ### Key Technical Decisions
 
@@ -72,11 +87,13 @@ Last Updated: [2025-10-30T04:45:00Z]
 1. **Fabric Page**: Wire up frontend to /api/v1/nac/fabric endpoint; Card-based layout for global/fabric config display
 2. **Interfaces Feature**: Backend get_interfaces_for_table() in nac_api.py; Frontend table with switch grouping; Follow VRFs/Networks pattern
 3. **Testing**: Automated tests for NaC API Client and blueprints; Connection test button integration; Error handling and feedback
-4. **Memory**: Monitor global capacity (93.2%); Continue validating pattern reuse; Consider archival strategy for low-reuse patterns
+4. ~~**Memory Archival**~~: ✅ COMPLETED (2025-10-30) - Archived 8 Terraform patterns, reduced lessons-learned.md by 15.9%
 
 ## Session Notes
 
-**Pattern Library**: 33 universal patterns; 73% overall reuse rate; 60% promotion rate for API refinement (showing equilibrium with periodic valuable additions)
-**Memory Health**: Global 93.2% (near capacity - monitor); Project 55.1% (optimized); Combined 73% (healthy)
-**Development Velocity**: High-quality pattern library enables rapid feature development; Zero errors validates effective error prevention
-**Cross-Tier Learning**: 6 total patterns promoted to global (3 in 2025-10-23, 3 in 2025-10-30); Demonstrates effective universal pattern extraction
+**Pattern Library**: 36 universal patterns (30→36 in 2025-10-30); 73% overall reuse rate; showing productive equilibrium with systematic extraction of high-value patterns
+**Memory Health**: ✅ Global 64.8% (healthy); Project 73.4% (healthy); CRITICAL archival completed (2025-10-30); 2 files restored from over-limit; session-history.md 86.1% requires monitoring
+**Development Velocity**: High-quality pattern library enables rapid feature development; Zero errors validates effective error prevention; Modern packaging structure improves maintainability
+**Cross-Tier Learning**: 6 total patterns promoted to global (3 in 2025-10-23, 3 in 2025-10-30); demonstrates equilibrium with periodic valuable additions; DRY principle, modern packaging show architectural maturity
+**Documentation Quality**: Comprehensive README updates maintain consistency with modern packaging structure; all examples updated for src/ layout and uv package manager
+**Archival Operations**: Flask-specific patterns archived to 2025-Q4 (4.6KB reduction in global memory); Phases 1-5 archived (3.3KB reduction in project memory); Total 7.9KB archived; memory system health fully restored

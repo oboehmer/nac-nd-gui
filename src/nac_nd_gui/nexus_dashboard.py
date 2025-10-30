@@ -44,7 +44,9 @@ class NexusDashboardClient:
     def _load_config(self):
         """Load configuration from YAML file"""
         try:
-            config_path = os.path.join(os.path.dirname(__file__), 'yaml', 'config.yaml')
+            # Navigate from src/nac_nd_gui/ up to project root, then to yaml/
+            project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            config_path = os.path.join(project_root, 'yaml', 'config.yaml')
 
             if not os.path.exists(config_path):
                 logger.warning("Configuration file not found. Please configure via Admin panel.")

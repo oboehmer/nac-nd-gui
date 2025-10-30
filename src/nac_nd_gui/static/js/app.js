@@ -198,7 +198,7 @@ function initializeTableForPage(page) {
     };
 
     // Determine if this is a NaC or Nexus page and delegate
-    const nacPages = ['fabric', 'vrf', 'networks', 'switches', 'interfaces'];
+    const nacPages = ['fabric', 'vrf', 'networks', 'switches', 'interfaces', 'action-vrfs', 'action-networks'];
     const nexusPages = ['nexus-fabric', 'nexus-switches', 'nexus-vrf', 'nexus-network', 'nexus-interfaces'];
 
     if (nacPages.includes(page)) {

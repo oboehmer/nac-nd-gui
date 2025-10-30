@@ -1,0 +1,113 @@
+<svg width="800" height="300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d47a1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1976d2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00bcd4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00e5ff;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="300" fill="url(#bgGradient)" rx="15"/>
+
+  <!-- Network Grid Pattern -->
+  <g opacity="0.1">
+    <line x1="0" y1="100" x2="800" y2="100" stroke="#fff" stroke-width="1"/>
+    <line x1="0" y1="200" x2="800" y2="200" stroke="#fff" stroke-width="1"/>
+    <line x1="200" y1="0" x2="200" y2="300" stroke="#fff" stroke-width="1"/>
+    <line x1="400" y1="0" x2="400" y2="300" stroke="#fff" stroke-width="1"/>
+    <line x1="600" y1="0" x2="600" y2="300" stroke="#fff" stroke-width="1"/>
+  </g>
+
+  <!-- Network Nodes and Connections (left side) -->
+  <g opacity="0.6">
+    <!-- Connection lines -->
+    <line x1="80" y1="80" x2="140" y2="150" stroke="url(#accentGradient)" stroke-width="2"/>
+    <line x1="80" y1="220" x2="140" y2="150" stroke="url(#accentGradient)" stroke-width="2"/>
+    <line x1="140" y1="150" x2="200" y2="100" stroke="url(#accentGradient)" stroke-width="2"/>
+    <line x1="140" y1="150" x2="200" y2="200" stroke="url(#accentGradient)" stroke-width="2"/>
+
+    <!-- Nodes -->
+    <circle cx="80" cy="80" r="8" fill="#00e5ff" filter="url(#glow)"/>
+    <circle cx="80" cy="220" r="8" fill="#00e5ff" filter="url(#glow)"/>
+    <circle cx="140" cy="150" r="12" fill="#00bcd4" filter="url(#glow)"/>
+    <circle cx="200" cy="100" r="6" fill="#00e5ff"/>
+    <circle cx="200" cy="200" r="6" fill="#00e5ff"/>
+  </g>
+
+  <!-- Network Nodes and Connections (right side) -->
+  <g opacity="0.6">
+    <!-- Connection lines -->
+    <line x1="720" y1="80" x2="660" y2="150" stroke="url(#accentGradient)" stroke-width="2"/>
+    <line x1="720" y1="220" x2="660" y2="150" stroke="url(#accentGradient)" stroke-width="2"/>
+    <line x1="660" y1="150" x2="600" y2="100" stroke="url(#accentGradient)" stroke-width="2"/>
+    <line x1="660" y1="150" x2="600" y2="200" stroke="url(#accentGradient)" stroke-width="2"/>
+
+    <!-- Nodes -->
+    <circle cx="720" cy="80" r="8" fill="#00e5ff" filter="url(#glow)"/>
+    <circle cx="720" cy="220" r="8" fill="#00e5ff" filter="url(#glow)"/>
+    <circle cx="660" cy="150" r="12" fill="#00bcd4" filter="url(#glow)"/>
+    <circle cx="600" cy="100" r="6" fill="#00e5ff"/>
+    <circle cx="600" cy="200" r="6" fill="#00e5ff"/>
+  </g>
+
+  <!-- Main Text: NaC -->
+  <text x="400" y="140" font-family="Arial, Helvetica, sans-serif" font-size="100" font-weight="bold"
+        fill="#ffffff" text-anchor="middle" letter-spacing="8">
+    NaC
+  </text>
+
+  <!-- Accent line under NaC -->
+  <rect x="280" y="155" width="240" height="4" fill="url(#accentGradient)" rx="2"/>
+
+  <!-- Subtitle: Network as Code -->
+  <text x="400" y="195" font-family="Arial, Helvetica, sans-serif" font-size="24"
+        fill="#00e5ff" text-anchor="middle" letter-spacing="4">
+    NETWORK AS CODE
+  </text>
+
+  <!-- Tech accent: binary/code pattern -->
+  <g opacity="0.15" font-family="monospace" font-size="10" fill="#ffffff">
+    <text x="260" y="240">01001110 01100001 01000011</text>
+    <text x="250" y="255">011100110111010001110010</text>
+    <text x="240" y="270">0110111101101110011001110</text>
+  </g>
+
+  <!-- Circuit board style corners -->
+  <g stroke="#00e5ff" stroke-width="2" fill="none" opacity="0.4">
+    <!-- Top left -->
+    <path d="M 30,30 L 60,30 L 60,40 M 30,30 L 30,60"/>
+    <!-- Top right -->
+    <path d="M 770,30 L 740,30 L 740,40 M 770,30 L 770,60"/>
+    <!-- Bottom left -->
+    <path d="M 30,270 L 60,270 L 60,260 M 30,270 L 30,240"/>
+    <!-- Bottom right -->
+    <path d="M 770,270 L 740,270 L 740,260 M 770,270 L 770,240"/>
+  </g>
+
+  <!-- Pulsing data flow indicators -->
+  <g opacity="0.3">
+    <circle cx="300" cy="150" r="4" fill="#00e5ff">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="350" cy="150" r="4" fill="#00e5ff">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="450" cy="150" r="4" fill="#00e5ff">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" begin="1s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="500" cy="150" r="4" fill="#00e5ff">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" begin="1.5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+</svg>
