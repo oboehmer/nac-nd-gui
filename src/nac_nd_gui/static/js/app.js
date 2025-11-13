@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize admin form handlers
     initializeAdminHandlers();
+    initializeNetBoxHandlers();
 
     // Initialize NaC YAML event listeners
     if (typeof initializeNacYamlEventListeners === 'function') {
@@ -140,9 +141,14 @@ function loadPageContent(page, parent) {
         // Initialize table for this page if not already done
         initializeTableForPage(page);
 
-        // Load VRF dropdown for action-networks page
-        if (page === 'action-networks' && typeof loadVrfDropdown === 'function') {
-            loadVrfDropdown();
+        // Load VRF dropdown and fabric name for action-networks page
+        if (page === 'action-networks') {
+            if (typeof loadVrfDropdown === 'function') {
+                loadVrfDropdown();
+            }
+            if (typeof loadNetworkFabricName === 'function') {
+                loadNetworkFabricName();
+            }
         }
 
         // Smooth scroll to top of content
@@ -278,6 +284,307 @@ function initializeAdminHandlers() {
 
 
 /**
+ * Initialize NetBox form handlers
+ */
+function initializeNetBoxHandlers() {
+    // Password toggle handler for NetBox
+    initializePasswordToggle('toggleNetboxKey', 'netboxApiKey');
+
+    // Form submission handler
+    const netboxConfigForm = document.getElementById('netboxConfigForm');
+    if (netboxConfigForm) {
+        netboxConfigForm.addEventListener('submit', handleNetBoxFormSubmit);
+    }
+
+    // Load config button
+    const loadNetboxConfigBtn = document.getElementById('loadNetboxConfigBtn');
+    if (loadNetboxConfigBtn) {
+        loadNetboxConfigBtn.addEventListener('click', loadNetBoxConfig);
+    }
+
+    // Clear config button
+    const clearNetboxConfigBtn = document.getElementById('clearNetboxConfigBtn');
+    if (clearNetboxConfigBtn) {
+        clearNetboxConfigBtn.addEventListener('click', clearNetBoxConfig);
+    }
+
+    // Test NetBox connection button
+    const testNetboxConnectionBtn = document.getElementById('testNetboxConnectionBtn');
+    if (testNetboxConnectionBtn) {
+        testNetboxConnectionBtn.addEventListener('click', testNetboxConnection);
+    }
+
+    // Load NetBox roles button
+    const loadNetboxRolesBtn = document.getElementById('loadNetboxRolesBtn');
+    if (loadNetboxRolesBtn) {
+        loadNetboxRolesBtn.addEventListener('click', loadNetboxRoles);
+    }
+
+    // Add NetBox prefix button
+    const addNetboxPrefixBtn = document.getElementById('addNetboxPrefixBtn');
+    if (addNetboxPrefixBtn) {
+        addNetboxPrefixBtn.addEventListener('click', addNetboxPrefixEntry);
+    }
+
+    // Load NetBox VLAN groups button
+    const loadNetboxVlanGroupsBtn = document.getElementById('loadNetboxVlanGroupsBtn');
+    if (loadNetboxVlanGroupsBtn) {
+        loadNetboxVlanGroupsBtn.addEventListener('click', loadNetboxVlanGroups);
+    }
+
+    // Add NetBox VLAN group button
+    const addNetboxVlanGroupBtn = document.getElementById('addNetboxVlanGroupBtn');
+    if (addNetboxVlanGroupBtn) {
+        addNetboxVlanGroupBtn.addEventListener('click', addNetboxVlanGroupEntry);
+    }
+
+    // Refresh NetBox VLANs button
+    const refreshNetboxVlansBtn = document.getElementById('refreshNetboxVlansBtn');
+    if (refreshNetboxVlansBtn) {
+        refreshNetboxVlansBtn.addEventListener('click', loadNetBoxVlans);
+    }
+
+    // Refresh Sites Dashboard button
+    const refreshSitesDashboardBtn = document.getElementById('refreshSitesDashboardBtn');
+    if (refreshSitesDashboardBtn) {
+        refreshSitesDashboardBtn.addEventListener('click', loadSitesDashboard);
+    }
+
+    // Auto-load Sites Dashboard when NetBox Overview page becomes visible
+    const netboxOverviewPage = document.getElementById('page-netbox-overview');
+    if (netboxOverviewPage) {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.target.classList.contains('active')) {
+                    // Load Sites Dashboard
+                    loadSitesDashboard();
+                }
+            });
+        });
+
+        observer.observe(netboxOverviewPage, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    // Auto-load VLANs when NetBox VLANs page becomes visible
+    const netboxVlansPage = document.getElementById('page-netbox-vlans');
+    if (netboxVlansPage) {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.target.classList.contains('active')) {
+                    // Load VLANs
+                    loadNetBoxVlans();
+                }
+            });
+        });
+
+        observer.observe(netboxVlansPage, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    // Auto-load configuration when NetBox Admin page becomes visible
+    const netboxAdminPage = document.getElementById('page-netbox-admin');
+    if (netboxAdminPage) {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.target.classList.contains('active')) {
+                    // Page became active, load config if not already loaded
+                    const netboxApiKeyField = document.getElementById('netboxApiKey');
+                    if (netboxApiKeyField && !netboxApiKeyField.dataset.configLoaded) {
+                        loadNetBoxConfig();
+                        netboxApiKeyField.dataset.configLoaded = 'true';
+                    }
+                }
+            });
+        });
+
+        observer.observe(netboxAdminPage, { attributes: true, attributeFilter: ['class'] });
+    }
+}
+
+
+/**
+ * Initialize Network Action form handlers
+ */
+function initializeNacActionFormHandlers() {
+    const networkActionForm = document.getElementById('networkActionForm');
+    if (networkActionForm) {
+        networkActionForm.addEventListener('submit', handleNetworkActionSubmit);
+
+        // Add reset handler to clear response message
+        networkActionForm.addEventListener('reset', function() {
+            const responseDiv = document.getElementById('networkActionResponse');
+            if (responseDiv) {
+                responseDiv.style.display = 'none';
+                responseDiv.innerHTML = '';
+                responseDiv.className = 'alert';
+            }
+        });
+    }
+}
+
+
+/**
+ * Handle Network Action form submission
+ */
+async function handleNetworkActionSubmit(event) {
+    event.preventDefault();
+
+    const responseDiv = document.getElementById('networkActionResponse');
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+
+    try {
+        // Get form values
+        const networkName = document.getElementById('networkName').value.trim();
+        const vrfName = document.getElementById('networkVrfName').value;
+
+        if (!networkName) {
+            throw new Error('Network name is required');
+        }
+
+        if (!vrfName) {
+            throw new Error('VRF name is required');
+        }
+
+        // Disable submit button and show loading state
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
+        }
+
+        // Step 1: Create VLAN in NetBox
+        console.log(`Creating VLAN for network: ${networkName}`);
+        const vlanResponse = await fetch('/api/v1/netbox/create-network-vlan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                network_name: networkName
+            })
+        });
+
+        const vlanData = await vlanResponse.json();
+
+        if (vlanData.status !== 'success' && vlanData.status !== 'partial_success') {
+            throw new Error(vlanData.message || 'Failed to create VLAN in NetBox');
+        }
+
+        // Step 2: Calculate gateway IP address from prefix
+        // Replace last digit (0) with 1 and keep /24 mask
+        const prefixCidr = vlanData.prefix.prefix;  // e.g., "10.1.2.0/24"
+        const prefixParts = prefixCidr.split('/');
+        const ipParts = prefixParts[0].split('.');
+        ipParts[3] = '1';  // Replace last octet with 1
+        const gatewayIp = `${ipParts.join('.')}/24`;  // e.g., "10.1.2.1/24"
+
+        console.log(`Calculated gateway IP: ${gatewayIp} from prefix ${prefixCidr}`);
+
+        // Step 3: Merge network to NaC API
+        console.log(`Merging network to NaC API: ${networkName}`);
+        const nacMergeResponse = await fetch('/api/v1/nac/networks/merge', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: networkName,
+                vlan_id: vlanData.vlan.vid,
+                net_id: vlanData.vlan.vnid,  // VNID as net_id
+                gw_ip_address: gatewayIp,
+                vrf_name: vrfName,
+                vlan_name: `vlan_${networkName.toLowerCase()}`,
+                change_message: `Adding network ${networkName} via GUI`,
+                apply: false  // Don't auto-apply, let user review changeset
+            })
+        });
+
+        const nacMergeData = await nacMergeResponse.json();
+
+        if (nacMergeData.status !== 'success') {
+            // NetBox creation succeeded but NaC merge failed
+            throw new Error(`NetBox resources created, but NaC merge failed: ${nacMergeData.message}`);
+        }
+
+        console.log('Network merged to NaC API successfully');
+
+        // Display success message with both NetBox and NaC details
+        let detailsHtml = `
+            <strong><i class="bi bi-check-circle me-2"></i>Success!</strong>
+            <p class="mb-2 mt-2">Network created successfully in both NetBox and NaC API</p>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <strong>NetBox - VLAN Details:</strong>
+                    <ul class="mb-0 mt-1">
+                        <li>VLAN ID: ${vlanData.vlan.vid}</li>
+                        <li>VLAN Name: ${vlanData.vlan.name}</li>
+                        <li>VNID (L2_VNID): ${vlanData.vlan.vnid}</li>
+                        <li>NetBox VLAN ID: ${vlanData.vlan.id}</li>
+                    </ul>
+                </div>`;
+
+        // Add prefix details if available
+        if (vlanData.prefix) {
+            detailsHtml += `
+                <div class="col-md-6">
+                    <strong>NetBox - Prefix Details:</strong>
+                    <ul class="mb-0 mt-1">
+                        <li>Prefix: ${vlanData.prefix.prefix}</li>
+                        <li>Gateway IP: ${gatewayIp}</li>
+                        <li>Prefix Name: ${vlanData.prefix.name}</li>
+                        <li>NetBox Prefix ID: ${vlanData.prefix.id}</li>
+                    </ul>
+                </div>`;
+        }
+
+        detailsHtml += `
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <strong>NaC API - Network Details:</strong>
+                    <ul class="mb-0 mt-1">
+                        <li>Network Name: ${networkName}</li>
+                        <li>VRF: ${vrfName}</li>
+                        <li>VLAN ID: ${vlanData.vlan.vid}</li>
+                        <li>Network ID (VNID): ${vlanData.vlan.vnid}</li>
+                        <li>Gateway IP: ${gatewayIp}</li>
+                        <li>VLAN Name: vlan_${networkName.toLowerCase()}</li>
+                        <li><em>Status: Merged to NaC API (not applied to fabric yet)</em></li>
+                    </ul>
+                </div>
+            </div>`;
+
+        responseDiv.innerHTML = detailsHtml;
+        responseDiv.className = 'alert alert-success';
+        responseDiv.style.display = 'block';
+
+        // Refresh the networks table to show the new network
+        if (typeof loadActionNetworks === 'function') {
+            loadActionNetworks();
+        }
+
+        // Don't automatically reset form - let user review success message and manually reset if needed
+
+    } catch (error) {
+        console.error('Error creating network:', error);
+        responseDiv.innerHTML = `
+            <strong><i class="bi bi-x-circle me-2"></i>Error</strong>
+            <p class="mb-0 mt-2">${error.message}</p>
+        `;
+        responseDiv.className = 'alert alert-danger';
+        responseDiv.style.display = 'block';
+    } finally {
+        // Restore submit button
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-git me-2"></i>Merge Network';
+        }
+
+        // Scroll to response
+        responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+
+/**
  * Initialize password toggle for a field
  */
 function initializePasswordToggle(buttonId, inputId) {
@@ -299,6 +606,12 @@ function initializePasswordToggle(buttonId, inputId) {
 }
 
 
+// Global variable to store NetBox prefix settings
+let netboxPrefixSettings = [];
+
+// Global variable to store NetBox VLAN group settings
+let netboxVlanGroupSettings = [];
+
 /**
  * Handle admin form submission
  */
@@ -307,33 +620,51 @@ async function handleAdminFormSubmit(event) {
 
     const responseDiv = document.getElementById('apiKeysResponse');
 
-    // Get form fields
-    const nacApiUrlField = document.getElementById('nacApiUrl');
-    const nacApiKeyField = document.getElementById('nacApiKey');
-    const nexusApiKeyField = document.getElementById('nexusApiKey');
-    const nexusUrlField = document.getElementById('nexusUrl');
-    const nexusUsernameField = document.getElementById('nexusUsername');
-    const nexusFabricNameField = document.getElementById('nexusFabricName');
-    const scmProviderField = document.getElementById('scmProvider');
-    const scmApiUrlField = document.getElementById('scmApiUrl');
-    const repositoryUrlField = document.getElementById('repositoryUrl');
-    const dataSourcesDirField = document.getElementById('dataSourcesDir');
-
-    // Determine actual values to save
-    const formData = {
-        nac_api_url: nacApiUrlField.value,
-        nac_api_key: getFieldValue(nacApiKeyField),
-        nexus_api_key: getFieldValue(nexusApiKeyField),
-        nexus_url: nexusUrlField.value,
-        nexus_username: nexusUsernameField.value,
-        nexus_fabric_name: nexusFabricNameField.value,
-        scm_provider: scmProviderField.value,
-        scm_api_url: scmApiUrlField.value,
-        repository_url: repositoryUrlField.value,
-        data_sources_dir: dataSourcesDirField.value
-    };
-
     try {
+        // IMPORTANT: Load existing configuration first to avoid overwriting NetBox settings
+        const loadResponse = await fetch('/api/v1/admin/load-config');
+        const loadData = await loadResponse.json();
+
+        if (loadData.status !== 'success') {
+            throw new Error('Failed to load existing configuration');
+        }
+
+        const existingConfig = loadData.data;
+
+        // Get form fields
+        const nacApiUrlField = document.getElementById('nacApiUrl');
+        const nacApiKeyField = document.getElementById('nacApiKey');
+        const nexusApiKeyField = document.getElementById('nexusApiKey');
+        const nexusUrlField = document.getElementById('nexusUrl');
+        const nexusUsernameField = document.getElementById('nexusUsername');
+        const nexusFabricNameField = document.getElementById('nexusFabricName');
+        const scmProviderField = document.getElementById('scmProvider');
+        const scmApiUrlField = document.getElementById('scmApiUrl');
+        const repositoryUrlField = document.getElementById('repositoryUrl');
+        const dataSourcesDirField = document.getElementById('dataSourcesDir');
+
+        // Merge NAC/Nexus configuration with existing NetBox configuration
+        const formData = {
+            // Update NAC and Nexus Dashboard configuration
+            nac_api_url: nacApiUrlField.value,
+            nac_api_key: getFieldValue(nacApiKeyField),
+            nexus_api_key: getFieldValue(nexusApiKeyField),
+            nexus_url: nexusUrlField.value,
+            nexus_username: nexusUsernameField.value,
+            nexus_fabric_name: nexusFabricNameField.value,
+            scm_provider: scmProviderField.value,
+            scm_api_url: scmApiUrlField.value,
+            repository_url: repositoryUrlField.value,
+            data_sources_dir: dataSourcesDirField.value,
+
+            // Preserve existing NetBox configuration
+            netbox_url: existingConfig.netbox_url || '',
+            netbox_username: existingConfig.netbox_username || '',
+            netbox_api_key: existingConfig.netbox_api_key || '',
+            netbox_prefix_settings: existingConfig.netbox_prefix_settings || [],
+            netbox_vlan_group_settings: existingConfig.netbox_vlan_group_settings || []
+        };
+
         const response = await fetch('/api/v1/admin/save-config', {
             method: 'POST',
             headers: {
@@ -345,7 +676,14 @@ async function handleAdminFormSubmit(event) {
         const data = await response.json();
 
         if (data.status === 'success') {
-            responseDiv.textContent = `✓ ${data.message}`;
+            responseDiv.innerHTML = `
+                <strong><i class="bi bi-check-circle me-2"></i>Success!</strong>
+                <p class="mb-0 mt-2">${data.message}</p>
+                <p class="mb-0 mt-1 small text-success">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Configuration saved. All API calls will now use the updated credentials.
+                </p>
+            `;
             responseDiv.className = 'alert alert-success';
             responseDiv.style.display = 'block';
 
@@ -507,6 +845,363 @@ function clearPlaceholderDots(event) {
         field.value = '';
         field.placeholder = 'Enter new value or leave empty to keep current';
     }
+}
+
+
+/**
+ * Load roles from NetBox API
+ */
+async function loadNetboxRoles() {
+    const selectElement = document.getElementById('netboxPrefixRole');
+    const loadBtn = document.getElementById('loadNetboxRolesBtn');
+
+    if (!selectElement) {
+        return;
+    }
+
+    // Show loading state
+    const originalText = loadBtn ? loadBtn.innerHTML : '';
+    if (loadBtn) {
+        loadBtn.disabled = true;
+        loadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Loading...';
+    }
+
+    try {
+        const response = await fetch('/api/v1/netbox/roles');
+        const result = await response.json();
+
+        if (result.status === 'success' && result.data && result.data.results) {
+            const roles = result.data.results;
+
+            // Clear existing options except the first one
+            selectElement.innerHTML = '<option value="">-- Select a Role --</option>';
+
+            // Add roles as options
+            roles.forEach(role => {
+                const option = document.createElement('option');
+                option.value = JSON.stringify({
+                    id: role.id,
+                    name: role.name,
+                    slug: role.slug
+                });
+                option.textContent = `${role.name} (${role.slug})`;
+                selectElement.appendChild(option);
+            });
+
+            showToast(`Loaded ${roles.length} roles from NetBox`, 'success', 3000);
+        } else {
+            showToast('Failed to load roles. Please check your NetBox configuration.', 'error', 5000);
+        }
+    } catch (error) {
+        console.error('Error loading roles:', error);
+        showToast(`Error loading roles: ${error.message}`, 'error', 5000);
+    } finally {
+        // Restore button state
+        if (loadBtn) {
+            loadBtn.disabled = false;
+            loadBtn.innerHTML = originalText;
+        }
+    }
+}
+
+
+/**
+ * Add NetBox prefix entry (role-based)
+ */
+async function addNetboxPrefixEntry() {
+    const roleField = document.getElementById('netboxPrefixRole');
+    const addBtn = document.getElementById('addNetboxPrefixBtn');
+
+    if (!roleField || !roleField.value) {
+        showToast('Please select a Role first. Click "Load Roles from NetBox" to populate the list.', 'warning', 4000);
+        return;
+    }
+
+    // Show loading state
+    const originalText = addBtn ? addBtn.innerHTML : '';
+    if (addBtn) {
+        addBtn.disabled = true;
+        addBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Adding...';
+    }
+
+    try {
+        // Parse the selected role data
+        const roleData = JSON.parse(roleField.value);
+
+        // Check for duplicate role IDs
+        const duplicate = netboxPrefixSettings.find(item => item.role_id === roleData.id);
+        if (duplicate) {
+            showToast(`Role "${roleData.name}" (ID: ${roleData.id}) is already added`, 'warning', 4000);
+            return;
+        }
+
+        // Fetch prefixes for this role from NetBox
+        console.log(`Fetching prefixes for role: ${roleData.slug} (ID: ${roleData.id})`);
+        const response = await fetch(`/api/v1/netbox/prefixes?role=${roleData.slug}`);
+        const result = await response.json();
+
+        if (result.status !== 'success' || !result.data || !result.data.results || result.data.results.length === 0) {
+            showToast(`No prefixes found for role "${roleData.name}". Please ensure this role has prefixes configured in NetBox.`, 'error', 5000);
+            return;
+        }
+
+        // Get the first prefix ID (assuming one prefix per role)
+        const prefix = result.data.results[0];
+        const prefixId = prefix.id;
+
+        console.log(`Found prefix ID ${prefixId} for role ${roleData.name}`);
+
+        // Add to array with both role_id and prefix_id
+        netboxPrefixSettings.push({
+            role_id: roleData.id,
+            name: roleData.name,
+            slug: roleData.slug,
+            prefix_id: prefixId
+        });
+
+        // Reset select field
+        roleField.value = '';
+
+        // Update table display
+        renderNetboxPrefixSettings();
+
+    } catch (error) {
+        console.error('Error adding role:', error);
+        showToast(`Error adding role: ${error.message}`, 'error', 5000);
+    } finally {
+        // Restore button state
+        if (addBtn) {
+            addBtn.disabled = false;
+            addBtn.innerHTML = originalText;
+        }
+    }
+}
+
+
+/**
+ * Remove NetBox prefix entry
+ */
+function removeNetboxPrefixEntry(index) {
+    if (confirm('Are you sure you want to remove this entry?')) {
+        netboxPrefixSettings.splice(index, 1);
+        renderNetboxPrefixSettings();
+    }
+}
+
+
+/**
+ * Update NetBox prefix settings table display
+ */
+function renderNetboxPrefixSettings() {
+    const tableBody = document.getElementById('netboxSettingsTableBody');
+
+    if (!tableBody) {
+        return;
+    }
+
+    // If array is empty, show "No roles configured"
+    if (netboxPrefixSettings.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-muted">
+                    <em>No roles configured</em>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    // Build table rows
+    let rows = '';
+    netboxPrefixSettings.forEach((setting, index) => {
+        rows += `
+            <tr>
+                <td>${setting.name}</td>
+                <td>${setting.slug}</td>
+                <td>${setting.role_id}</td>
+                <td>${setting.prefix_id || 'N/A'}</td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-danger" onclick="removeNetboxPrefixEntry(${index})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    tableBody.innerHTML = rows;
+}
+
+
+/**
+ * Load VLAN groups from NetBox API
+ */
+async function loadNetboxVlanGroups() {
+    const selectElement = document.getElementById('netboxVlanGroup');
+    const loadBtn = document.getElementById('loadNetboxVlanGroupsBtn');
+
+    if (!selectElement) {
+        return;
+    }
+
+    // Show loading state
+    const originalText = loadBtn ? loadBtn.innerHTML : '';
+    if (loadBtn) {
+        loadBtn.disabled = true;
+        loadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Loading...';
+    }
+
+    try {
+        const response = await fetch('/api/v1/netbox/vlan-groups');
+        const result = await response.json();
+
+        if (result.status === 'success' && result.data && result.data.results) {
+            const vlanGroups = result.data.results;
+
+            // Clear existing options except the first one
+            selectElement.innerHTML = '<option value="">-- Select a VLAN Group --</option>';
+
+            // Add VLAN groups as options
+            vlanGroups.forEach(vg => {
+                // Log the raw VLAN group data to debug
+                console.log('VLAN Group from NetBox:', vg);
+
+                // Extract min/max VID from vid_ranges array
+                // vid_ranges is an array of [start, end] arrays: [[1000, 3999]]
+                let minVid = 1;
+                let maxVid = 4094;
+
+                if (vg.vid_ranges && vg.vid_ranges.length > 0 && vg.vid_ranges[0].length >= 2) {
+                    minVid = vg.vid_ranges[0][0];
+                    maxVid = vg.vid_ranges[0][1];
+                }
+
+                console.log(`VLAN Group ${vg.name}: vid_ranges=${JSON.stringify(vg.vid_ranges)}, using: ${minVid}-${maxVid}`);
+
+                const option = document.createElement('option');
+                option.value = JSON.stringify({
+                    id: vg.id,
+                    name: vg.name,
+                    min_vid: minVid,
+                    max_vid: maxVid
+                });
+                const vlanRange = `${minVid}-${maxVid}`;
+                option.textContent = `${vg.name} (VLANs: ${vlanRange})`;
+                selectElement.appendChild(option);
+            });
+
+            showToast(`Loaded ${vlanGroups.length} VLAN groups from NetBox`, 'success', 3000);
+        } else {
+            showToast('Failed to load VLAN groups. Please check your NetBox configuration.', 'error', 5000);
+        }
+    } catch (error) {
+        console.error('Error loading VLAN groups:', error);
+        showToast(`Error loading VLAN groups: ${error.message}`, 'error', 5000);
+    } finally {
+        // Restore button state
+        if (loadBtn) {
+            loadBtn.disabled = false;
+            loadBtn.innerHTML = originalText;
+        }
+    }
+}
+
+
+/**
+ * Add NetBox VLAN group entry
+ */
+function addNetboxVlanGroupEntry() {
+    const vlanGroupField = document.getElementById('netboxVlanGroup');
+
+    if (!vlanGroupField || !vlanGroupField.value) {
+        showToast('Please select a VLAN Group first. Click "Load VLAN Groups from NetBox" to populate the list.', 'warning', 4000);
+        return;
+    }
+
+    try {
+        // Parse the selected VLAN group data
+        const vlanGroupData = JSON.parse(vlanGroupField.value);
+
+        // Check for duplicate VLAN group IDs
+        const duplicate = netboxVlanGroupSettings.find(item => item.id === vlanGroupData.id);
+        if (duplicate) {
+            showToast(`VLAN Group "${vlanGroupData.name}" (ID: ${vlanGroupData.id}) is already added`, 'warning', 4000);
+            return;
+        }
+
+        // Add to array
+        netboxVlanGroupSettings.push({
+            id: vlanGroupData.id,
+            name: vlanGroupData.name,
+            min_vid: vlanGroupData.min_vid,
+            max_vid: vlanGroupData.max_vid,
+            vlan_range: `${vlanGroupData.min_vid}-${vlanGroupData.max_vid}`
+        });
+
+        // Reset select field
+        vlanGroupField.value = '';
+
+        // Update table display
+        renderNetboxVlanGroupSettings();
+
+    } catch (error) {
+        console.error('Error adding VLAN group:', error);
+        showToast('Error adding VLAN group. Please try again.', 'error', 5000);
+    }
+}
+
+
+/**
+ * Remove NetBox VLAN group entry
+ */
+function removeNetboxVlanGroupEntry(index) {
+    if (confirm('Are you sure you want to remove this VLAN group?')) {
+        netboxVlanGroupSettings.splice(index, 1);
+        renderNetboxVlanGroupSettings();
+    }
+}
+
+
+/**
+ * Update NetBox VLAN group settings table display
+ */
+function renderNetboxVlanGroupSettings() {
+    const tableBody = document.getElementById('netboxVlanGroupTableBody');
+
+    if (!tableBody) {
+        return;
+    }
+
+    // If array is empty, show "No VLAN groups configured"
+    if (netboxVlanGroupSettings.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center text-muted">
+                    <em>No VLAN groups configured</em>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    // Build table rows
+    let rows = '';
+    netboxVlanGroupSettings.forEach((setting, index) => {
+        rows += `
+            <tr>
+                <td>${setting.name}</td>
+                <td>${setting.id}</td>
+                <td>${setting.vlan_range}</td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-danger" onclick="removeNetboxVlanGroupEntry(${index})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    tableBody.innerHTML = rows;
 }
 
 
@@ -708,6 +1403,563 @@ async function testNacApiConnection() {
 
 
 /**
+ * Handle NetBox form submission
+ */
+async function handleNetBoxFormSubmit(event) {
+    event.preventDefault();
+
+    const responseDiv = document.getElementById('netboxConfigResponse');
+
+    try {
+        // IMPORTANT: Load existing configuration first to avoid overwriting NAC/Nexus settings
+        const loadResponse = await fetch('/api/v1/admin/load-config');
+        const loadData = await loadResponse.json();
+
+        if (loadData.status !== 'success') {
+            throw new Error('Failed to load existing configuration');
+        }
+
+        const existingConfig = loadData.data;
+
+        // Get form fields
+        const netboxUrlField = document.getElementById('netboxUrl');
+        const netboxUsernameField = document.getElementById('netboxUsername');
+        const netboxApiKeyField = document.getElementById('netboxApiKey');
+
+        // Merge NetBox configuration with existing NAC and Nexus configuration
+        const formData = {
+            // Preserve existing NAC configuration
+            nac_api_url: existingConfig.nac_api_url || '',
+            nac_api_key: existingConfig.nac_api_key || '',
+            scm_provider: existingConfig.scm_provider || '',
+            scm_api_url: existingConfig.scm_api_url || '',
+            repository_url: existingConfig.repository_url || '',
+            data_sources_dir: existingConfig.data_sources_dir || '',
+
+            // Preserve existing Nexus Dashboard configuration
+            nexus_api_key: existingConfig.nexus_api_key || '',
+            nexus_url: existingConfig.nexus_url || '',
+            nexus_username: existingConfig.nexus_username || '',
+            nexus_fabric_name: existingConfig.nexus_fabric_name || '',
+
+            // Update NetBox configuration only
+            netbox_url: netboxUrlField.value,
+            netbox_username: netboxUsernameField.value,
+            netbox_api_key: getFieldValue(netboxApiKeyField),
+            netbox_prefix_settings: netboxPrefixSettings,
+            netbox_vlan_group_settings: netboxVlanGroupSettings
+        };
+
+        const response = await fetch('/api/v1/admin/save-config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+            responseDiv.innerHTML = `
+                <strong><i class="bi bi-check-circle me-2"></i>Success!</strong>
+                <p class="mb-0 mt-2">${data.message}</p>
+                <p class="mb-0 mt-1 small text-success">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Configuration saved. All NetBox API calls will now use the updated credentials.
+                </p>
+            `;
+            responseDiv.className = 'alert alert-success';
+
+            // Update field states to show configuration is saved
+            if (netboxApiKeyField.value && netboxApiKeyField.value !== '••••••••••••••••') {
+                netboxApiKeyField.dataset.hasValue = 'true';
+                netboxApiKeyField.dataset.actualValue = netboxApiKeyField.value;
+                netboxApiKeyField.value = '••••••••••••••••';
+                netboxApiKeyField.placeholder = 'Value configured - enter new value to change';
+            }
+
+            addPlaceholderClearListener(netboxApiKeyField);
+
+            // Auto-refresh the sites dashboard after configuration save
+            setTimeout(() => {
+                loadSitesDashboard();
+            }, 1000);
+        } else {
+            responseDiv.innerHTML = `
+                <strong><i class="bi bi-x-circle me-2"></i>Error</strong>
+                <p class="mb-0 mt-2">${data.message}</p>
+            `;
+            responseDiv.className = 'alert alert-danger';
+        }
+
+        responseDiv.style.display = 'block';
+        responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (error) {
+        console.error('Error:', error);
+        responseDiv.innerHTML = `
+            <strong><i class="bi bi-x-circle me-2"></i>Error</strong>
+            <p class="mb-0 mt-2">Failed to save configuration. Please try again.</p>
+        `;
+        responseDiv.className = 'alert alert-danger';
+        responseDiv.style.display = 'block';
+        responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+
+/**
+ * Load NetBox configuration
+ */
+async function loadNetBoxConfig() {
+    try {
+        const response = await fetch('/api/v1/admin/load-config');
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            const data = result.data;
+
+            // Get form fields
+            const netboxUrlField = document.getElementById('netboxUrl');
+            const netboxUsernameField = document.getElementById('netboxUsername');
+            const netboxApiKeyField = document.getElementById('netboxApiKey');
+
+            // Handle API key field with placeholder
+            if (data.netbox_api_key) {
+                netboxApiKeyField.value = '••••••••••••••••';
+                netboxApiKeyField.dataset.hasValue = 'true';
+                netboxApiKeyField.dataset.actualValue = data.netbox_api_key;
+                netboxApiKeyField.placeholder = 'Value configured - enter new value to change';
+            } else {
+                netboxApiKeyField.value = '';
+                netboxApiKeyField.dataset.hasValue = 'false';
+                netboxApiKeyField.placeholder = 'Enter Netbox API Key';
+            }
+
+            // Set other field values
+            netboxUrlField.value = data.netbox_url || '';
+            netboxUsernameField.value = data.netbox_username || '';
+
+            // Load NetBox prefix settings
+            netboxPrefixSettings = data.netbox_prefix_settings || [];
+            renderNetboxPrefixSettings();
+
+            // Load NetBox VLAN group settings
+            netboxVlanGroupSettings = data.netbox_vlan_group_settings || [];
+            renderNetboxVlanGroupSettings();
+
+            // Add placeholder clear listeners
+            addPlaceholderClearListener(netboxApiKeyField);
+        }
+    } catch (error) {
+        console.error('Failed to load configuration:', error);
+    }
+}
+
+
+/**
+ * Clear NetBox configuration
+ */
+async function clearNetBoxConfig() {
+    if (!confirm('Are you sure you want to clear the NetBox configuration? This action cannot be undone.')) {
+        return;
+    }
+
+    const responseDiv = document.getElementById('netboxConfigResponse');
+
+    try {
+        // Clear the form fields
+        document.getElementById('netboxUrl').value = '';
+        document.getElementById('netboxUsername').value = '';
+        const netboxApiKeyField = document.getElementById('netboxApiKey');
+        netboxApiKeyField.value = '';
+        netboxApiKeyField.dataset.hasValue = 'false';
+        netboxApiKeyField.placeholder = 'Enter Netbox API Key';
+
+        // Clear prefix settings
+        netboxPrefixSettings = [];
+        renderNetboxPrefixSettings();
+
+        // Show success message
+        responseDiv.innerHTML = `
+            <strong><i class="bi bi-check-circle me-2"></i>Success!</strong>
+            <p class="mb-0 mt-2">NetBox configuration cleared. Remember to save to persist changes.</p>
+        `;
+        responseDiv.className = 'alert alert-info';
+        responseDiv.style.display = 'block';
+        responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (error) {
+        console.error('Error:', error);
+        responseDiv.innerHTML = `
+            <strong><i class="bi bi-x-circle me-2"></i>Error</strong>
+            <p class="mb-0 mt-2">Failed to clear configuration. Please try again.</p>
+        `;
+        responseDiv.className = 'alert alert-danger';
+        responseDiv.style.display = 'block';
+        responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+
+/**
+ * Test NetBox connection
+ */
+async function testNetboxConnection() {
+    const responseDiv = document.getElementById('netboxConnectionResponse');
+    const testBtn = document.getElementById('testNetboxConnectionBtn');
+
+    // Show loading state
+    const originalText = testBtn.innerHTML;
+    testBtn.disabled = true;
+    testBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Testing...';
+
+    responseDiv.style.display = 'none';
+
+    try {
+        const response = await fetch('/api/v1/netbox/test-connection');
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            let netboxInfo = '';
+            if (result.netbox_version) {
+                netboxInfo += `<p class="mb-0 mt-1"><small>NetBox Version: <strong>${result.netbox_version}</strong></small></p>`;
+            }
+            if (result.prefix_count !== undefined) {
+                netboxInfo += `<p class="mb-0 mt-1"><small>IP Prefixes: <strong>${result.prefix_count}</strong></small></p>`;
+            }
+
+            responseDiv.innerHTML = `
+                <strong><i class="bi bi-check-circle me-2"></i>Connection Successful!</strong>
+                <p class="mb-0 mt-2">${result.message}</p>
+                ${netboxInfo}
+            `;
+            responseDiv.className = 'alert alert-success mt-3';
+        } else {
+            responseDiv.innerHTML = `
+                <strong><i class="bi bi-x-circle me-2"></i>Connection Failed</strong>
+                <p class="mb-0 mt-2">${result.message}</p>
+            `;
+            responseDiv.className = 'alert alert-danger mt-3';
+        }
+
+        responseDiv.style.display = 'block';
+    } catch (error) {
+        console.error('Connection test error:', error);
+        responseDiv.innerHTML = `
+            <strong><i class="bi bi-x-circle me-2"></i>Connection Test Failed</strong>
+            <p class="mb-0 mt-2">Unable to connect to server: ${error.message}</p>
+        `;
+        responseDiv.className = 'alert alert-danger mt-3';
+        responseDiv.style.display = 'block';
+    } finally {
+        // Restore button state
+        testBtn.disabled = false;
+        testBtn.innerHTML = originalText;
+
+        // Smooth scroll to response
+        responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+
+/**
+ * Load and display NetBox Sites Dashboard
+ */
+async function loadSitesDashboard() {
+    const container = document.getElementById('sitesDashboardContainer');
+    const refreshBtn = document.getElementById('refreshSitesDashboardBtn');
+
+    // Show loading state
+    if (refreshBtn) {
+        refreshBtn.disabled = true;
+        refreshBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
+    }
+
+    container.innerHTML = `
+        <div class="col-12 text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="text-muted mt-2">Loading sites...</p>
+        </div>
+    `;
+
+    try {
+        const response = await fetch('/api/v1/netbox/sites-dashboard');
+        const result = await response.json();
+
+        if (result.status === 'success' && result.data) {
+            const sites = result.data.sites || [];
+
+            if (sites.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            No sites found in NetBox
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Create site cards
+            let cardsHtml = '';
+            sites.forEach(site => {
+                const stats = site.statistics;
+                const statusLabel = site.status?.label || 'Unknown';
+                const statusValue = site.status?.value || 'unknown';
+                const statusColors = {
+                    'active': 'success',
+                    'planned': 'info',
+                    'retired': 'secondary',
+                    'staging': 'warning'
+                };
+                const statusColor = statusColors[statusValue] || 'secondary';
+
+                cardsHtml += `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm border-${statusColor} hover-shadow">
+                            <div class="card-header bg-${statusColor} text-white">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-building me-2"></i>${site.name}
+                                    <span class="badge bg-light text-dark float-end">${statusLabel}</span>
+                                </h6>
+                                ${site.facility ? `<small class="text-white-50">${site.facility}</small>` : ''}
+                            </div>
+                            <div class="card-body">
+                                ${site.description ? `<p class="card-text text-muted small mb-3">${site.description}</p>` : ''}
+
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div class="stat-box text-center p-2 bg-light rounded">
+                                            <i class="bi bi-geo-alt text-primary"></i>
+                                            <div class="h4 mb-0 mt-1">${stats.locations}</div>
+                                            <small class="text-muted">Location${stats.locations !== 1 ? 's' : ''}</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="stat-box text-center p-2 bg-light rounded">
+                                            <i class="bi bi-collection text-warning"></i>
+                                            <div class="h4 mb-0 mt-1">${stats.vlan_groups}</div>
+                                            <small class="text-muted">VLAN Group${stats.vlan_groups !== 1 ? 's' : ''}</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="stat-box text-center p-2 bg-light rounded">
+                                            <i class="bi bi-diagram-2 text-info"></i>
+                                            <div class="h4 mb-0 mt-1">${stats.vlans}</div>
+                                            <small class="text-muted">VLAN${stats.vlans !== 1 ? 's' : ''}</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="stat-box text-center p-2 bg-light rounded">
+                                            <i class="bi bi-hdd-network text-success"></i>
+                                            <div class="h4 mb-0 mt-1">${stats.prefixes}</div>
+                                            <small class="text-muted">Prefix${stats.prefixes !== 1 ? 'es' : ''}</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                ${stats.available_prefixes > 0 ? `
+                                    <div class="mt-3 text-center">
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i>
+                                            ${stats.available_prefixes} Available Prefix${stats.available_prefixes !== 1 ? 'es' : ''}
+                                        </span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = cardsHtml;
+
+        } else {
+            container.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        ${result.message || 'Failed to load sites dashboard'}
+                    </div>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading sites dashboard:', error);
+        container.innerHTML = `
+            <div class="col-12">
+                <div class="alert alert-danger">
+                    <i class="bi bi-x-circle me-2"></i>
+                    Error loading sites dashboard: ${error.message}
+                </div>
+            </div>
+        `;
+    } finally {
+        // Restore button state
+        if (refreshBtn) {
+            refreshBtn.disabled = false;
+            refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>Refresh';
+        }
+    }
+}
+
+
+/**
+ * Load and display NetBox VLANs
+ */
+async function loadNetBoxVlans() {
+    const tableContainer = document.getElementById('netboxVlansTable');
+    const refreshBtn = document.getElementById('refreshNetboxVlansBtn');
+
+    // Show loading state
+    if (refreshBtn) {
+        const originalText = refreshBtn.innerHTML;
+        refreshBtn.disabled = true;
+        refreshBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
+    }
+
+    try {
+        const response = await fetch('/api/v1/netbox/vlans');
+        const result = await response.json();
+
+        if (result.status === 'success' && result.data) {
+            const vlans = result.data.results || [];
+            const totalCount = result.data.count || vlans.length;
+
+            console.log(`Loaded ${totalCount} VLANs from NetBox`);
+
+            // Update count badge
+            const countBadge = document.getElementById('vlansCountBadge');
+            if (countBadge) {
+                countBadge.textContent = `${totalCount} total VLANs loaded`;
+            }
+
+            // Initialize or update Tabulator table
+            if (tableInstances.netboxVlans) {
+                tableInstances.netboxVlans.setData(vlans);
+            } else {
+                tableInstances.netboxVlans = new Tabulator('#netboxVlansTable', {
+                    data: vlans,
+                    layout: 'fitColumns',
+                    pagination: 'local',
+                    paginationSize: 25,
+                    paginationSizeSelector: [10, 25, 50, 100],
+                    movableColumns: true,
+                    resizableRows: true,
+                    responsiveLayout: 'collapse',
+                    placeholder: 'No VLANs found',
+                    columns: [
+                        {
+                            title: 'VLAN ID',
+                            field: 'vid',
+                            sorter: 'number',
+                            width: 100,
+                            headerFilter: 'input'
+                        },
+                        {
+                            title: 'Name',
+                            field: 'name',
+                            sorter: 'string',
+                            headerFilter: 'input'
+                        },
+                        {
+                            title: 'Status',
+                            field: 'status.label',
+                            sorter: 'string',
+                            width: 120,
+                            formatter: function(cell) {
+                                const value = cell.getValue();
+                                const statusColors = {
+                                    'Active': 'success',
+                                    'Reserved': 'warning',
+                                    'Deprecated': 'danger'
+                                };
+                                const colorClass = statusColors[value] || 'secondary';
+                                return `<span class="badge bg-${colorClass}">${value || 'Unknown'}</span>`;
+                            }
+                        },
+                        {
+                            title: 'Role',
+                            field: 'role.name',
+                            sorter: 'string',
+                            headerFilter: 'input',
+                            formatter: function(cell) {
+                                const value = cell.getValue();
+                                return value || '<em class="text-muted">No role</em>';
+                            }
+                        },
+                        {
+                            title: 'Tenant',
+                            field: 'tenant.name',
+                            sorter: 'string',
+                            headerFilter: 'input',
+                            formatter: function(cell) {
+                                const value = cell.getValue();
+                                return value || '<em class="text-muted">No tenant</em>';
+                            }
+                        },
+                        {
+                            title: 'Site',
+                            field: 'site.name',
+                            sorter: 'string',
+                            headerFilter: 'input',
+                            formatter: function(cell) {
+                                const value = cell.getValue();
+                                return value || '<em class="text-muted">No site</em>';
+                            }
+                        },
+                        {
+                            title: 'Group',
+                            field: 'group.name',
+                            sorter: 'string',
+                            headerFilter: 'input',
+                            formatter: function(cell) {
+                                const value = cell.getValue();
+                                return value || '<em class="text-muted">No group</em>';
+                            }
+                        },
+                        {
+                            title: 'Description',
+                            field: 'description',
+                            sorter: 'string',
+                            formatter: function(cell) {
+                                const value = cell.getValue();
+                                return value || '<em class="text-muted">No description</em>';
+                            }
+                        }
+                    ]
+                });
+            }
+        } else {
+            tableContainer.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    ${result.message || 'Failed to load VLANs from NetBox'}
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading NetBox VLANs:', error);
+        tableContainer.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="bi bi-x-circle me-2"></i>
+                Error loading VLANs: ${error.message}
+            </div>
+        `;
+    } finally {
+        // Restore button state
+        if (refreshBtn) {
+            refreshBtn.disabled = false;
+            refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>Refresh';
+        }
+    }
+}
+
+
+/**
  * Utility function to make API calls
  */
 async function apiCall(endpoint, options = {}) {
@@ -734,21 +1986,97 @@ async function apiCall(endpoint, options = {}) {
 
 
 /**
- * Show toast notification (Bootstrap 5.3)
+ * Load fabric name into the Network action form
  */
-function showToast(message, type = 'info') {
-    // Create toast element
-    const toastHtml = `
-        <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">
-                    ${message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div>
-    `;
+async function loadNetworkFabricName() {
+    const fabricNameField = document.getElementById('networkFabricName');
 
-    // You can append this to a toast container if you add one to the HTML
-    console.log('Toast:', message);
+    if (!fabricNameField) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/v1/admin/load-config');
+        const result = await response.json();
+
+        if (result.status === 'success' && result.data) {
+            const fabricName = result.data.nexus_fabric_name || 'Not Configured';
+            fabricNameField.value = fabricName;
+
+            if (fabricName === 'Not Configured') {
+                fabricNameField.classList.add('text-muted');
+            } else {
+                fabricNameField.classList.remove('text-muted');
+            }
+        } else {
+            fabricNameField.value = 'Error loading fabric name';
+            fabricNameField.classList.add('text-danger');
+        }
+    } catch (error) {
+        console.error('Error loading fabric name:', error);
+        fabricNameField.value = 'Error loading fabric name';
+        fabricNameField.classList.add('text-danger');
+    }
+}
+
+
+/**
+ * Show toast notification (Bootstrap 5.3)
+ * @param {string} message - The message to display
+ * @param {string} type - The type of toast: 'success', 'error', 'info', 'warning'
+ * @param {number} duration - Auto-hide delay in milliseconds (default: 3000)
+ */
+function showToast(message, type = 'info', duration = 3000) {
+    const toastEl = document.getElementById('globalToast');
+    const toastTitle = document.getElementById('toastTitle');
+    const toastBody = document.getElementById('toastBody');
+    const toastIcon = document.getElementById('toastIcon');
+
+    if (!toastEl || !toastTitle || !toastBody || !toastIcon) {
+        console.error('Toast elements not found');
+        console.log('Toast message:', message);
+        return;
+    }
+
+    // Set icon and colors based on type
+    const toastHeader = toastEl.querySelector('.toast-header');
+    toastIcon.className = 'bi me-2';
+
+    switch(type) {
+        case 'success':
+            toastTitle.textContent = 'Success';
+            toastIcon.classList.add('bi-check-circle-fill', 'text-success');
+            toastHeader.classList.remove('bg-danger', 'bg-warning', 'bg-info');
+            toastHeader.classList.add('bg-success', 'text-white');
+            break;
+        case 'error':
+            toastTitle.textContent = 'Error';
+            toastIcon.classList.add('bi-x-circle-fill', 'text-white');
+            toastHeader.classList.remove('bg-success', 'bg-warning', 'bg-info');
+            toastHeader.classList.add('bg-danger', 'text-white');
+            break;
+        case 'warning':
+            toastTitle.textContent = 'Warning';
+            toastIcon.classList.add('bi-exclamation-triangle-fill', 'text-dark');
+            toastHeader.classList.remove('bg-success', 'bg-danger', 'bg-info');
+            toastHeader.classList.add('bg-warning');
+            break;
+        case 'info':
+        default:
+            toastTitle.textContent = 'Info';
+            toastIcon.classList.add('bi-info-circle-fill', 'text-white');
+            toastHeader.classList.remove('bg-success', 'bg-danger', 'bg-warning');
+            toastHeader.classList.add('bg-info', 'text-white');
+            break;
+    }
+
+    // Set message
+    toastBody.textContent = message;
+
+    // Show the toast with auto-hide
+    const toast = new bootstrap.Toast(toastEl, {
+        autohide: true,
+        delay: duration
+    });
+    toast.show();
 }

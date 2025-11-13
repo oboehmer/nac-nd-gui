@@ -152,8 +152,37 @@
                     </ul>
                 </li>
 
+                <!-- NetBox Parent Node -->
+                <li class="sidebar-item">
+                    <a href="#netboxMenu" class="sidebar-parent" data-bs-toggle="collapse" aria-expanded="false">
+                        <i class="bi bi-server"></i>
+                        <span>NetBox</span>
+                        <i class="bi bi-chevron-down sidebar-arrow"></i>
+                    </a>
+                    <ul class="collapse sidebar-submenu" id="netboxMenu">
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" data-page="netbox-overview" data-parent="netbox">
+                                <i class="bi bi-speedometer2"></i>
+                                <span>Overview</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" data-page="netbox-vlans" data-parent="netbox">
+                                <i class="bi bi-diagram-2"></i>
+                                <span>VLANs</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
                 <!-- Admin Section (Separator) -->
                 <li class="sidebar-divider"></li>
+                <li class="sidebar-item">
+                    <a href="#" class="sidebar-link" data-page="netbox-admin" data-parent="netbox-admin">
+                        <i class="bi bi-gear-fill"></i>
+                        <span>NetBox Admin</span>
+                    </a>
+                </li>
                 <li class="sidebar-item">
                     <a href="#" class="sidebar-link" data-page="admin" data-parent="admin">
                         <i class="bi bi-gear"></i>
@@ -560,6 +589,15 @@
                                         <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Network Configuration</h5>
                                     </div>
                                     <div class="card-body">
+                                        <!-- Fabric Name (Read-Only) -->
+                                        <div class="mb-3">
+                                            <label for="networkFabricName" class="form-label fw-bold">
+                                                <i class="bi bi-grid-3x3 text-success me-2"></i>Fabric Name
+                                            </label>
+                                            <input type="text" class="form-control" id="networkFabricName" name="fabric_name" placeholder="Loading..." readonly>
+                                            <small class="form-text text-muted">Configured fabric in Nexus Dashboard (read-only)</small>
+                                        </div>
+
                                         <!-- Network Name -->
                                         <div class="mb-3">
                                             <label for="networkName" class="form-label fw-bold">
@@ -579,60 +617,6 @@
                                                 <!-- VRF options will be populated from /api/v1/nac/vrfs -->
                                             </select>
                                             <small class="form-text text-muted">Associated VRF for this network (loaded from NaC API)</small>
-                                        </div>
-
-                                        <!-- Network ID -->
-                                        <div class="mb-3">
-                                            <label for="netId" class="form-label fw-bold">
-                                                <i class="bi bi-hash text-success me-2"></i>Network ID
-                                            </label>
-                                            <input type="number" class="form-control" id="netId" name="net_id" placeholder="Enter network ID" required>
-                                            <small class="form-text text-muted">Network identifier (numeric)</small>
-                                        </div>
-
-                                        <!-- VLAN ID -->
-                                        <div class="mb-3">
-                                            <label for="networkVlanId" class="form-label fw-bold">
-                                                <i class="bi bi-hash text-success me-2"></i>VLAN ID
-                                            </label>
-                                            <input type="number" class="form-control" id="networkVlanId" name="vlan_id" placeholder="Enter VLAN ID" min="1" max="4094" required>
-                                            <small class="form-text text-muted">VLAN identifier (1-4094)</small>
-                                        </div>
-
-                                        <!-- VLAN Name -->
-                                        <div class="mb-3">
-                                            <label for="vlanName" class="form-label fw-bold">
-                                                <i class="bi bi-diagram-2 text-success me-2"></i>VLAN Name
-                                            </label>
-                                            <input type="text" class="form-control" id="vlanName" name="vlan_name" placeholder="Enter VLAN name">
-                                            <small class="form-text text-muted">Optional descriptive name for the VLAN</small>
-                                        </div>
-
-                                        <!-- Gateway IP Address -->
-                                        <div class="mb-3">
-                                            <label for="gwIpAddress" class="form-label fw-bold">
-                                                <i class="bi bi-router text-success me-2"></i>Gateway IP Address
-                                            </label>
-                                            <input type="text" class="form-control" id="gwIpAddress" name="gw_ip_address" placeholder="e.g., 192.168.1.1/24">
-                                            <small class="form-text text-muted">Optional IPv4 gateway address with subnet mask (CIDR notation)</small>
-                                        </div>
-
-                                        <!-- Gateway IPv6 Address -->
-                                        <div class="mb-3">
-                                            <label for="gwIpv6Address" class="form-label fw-bold">
-                                                <i class="bi bi-router text-success me-2"></i>Gateway IPv6 Address
-                                            </label>
-                                            <input type="text" class="form-control" id="gwIpv6Address" name="gw_ipv6_address" placeholder="e.g., 2001:db8::1/64">
-                                            <small class="form-text text-muted">Optional IPv6 gateway address with prefix length</small>
-                                        </div>
-
-                                        <!-- Secondary IP Address -->
-                                        <div class="mb-3">
-                                            <label for="secondaryIpAddress" class="form-label fw-bold">
-                                                <i class="bi bi-hdd-network text-success me-2"></i>Secondary IP Address
-                                            </label>
-                                            <input type="text" class="form-control" id="secondaryIpAddress" name="secondary_ip_address" placeholder="e.g., 192.168.1.2/24">
-                                            <small class="form-text text-muted">Optional secondary IPv4 address with subnet mask</small>
                                         </div>
                                     </div>
                                 </div>
@@ -669,6 +653,256 @@
                     </div>
                 </div>
 
+                <!-- NetBox Overview Page -->
+                <div id="page-netbox-overview" class="page-content">
+                    <div class="page-header mb-4">
+                        <h2><i class="bi bi-speedometer2 me-2"></i>NetBox Overview</h2>
+                        <p class="text-muted">Sites dashboard and IPAM hierarchy overview</p>
+                    </div>
+
+                    <!-- Sites Dashboard Section -->
+                    <div class="row mb-4">
+                        <div class="col-lg-12">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0"><i class="bi bi-building me-2"></i>Sites Overview</h5>
+                                    <button class="btn btn-light btn-sm" id="refreshSitesDashboardBtn">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div id="sitesDashboardContainer" class="row g-3">
+                                        <!-- Site cards will be dynamically loaded here -->
+                                        <div class="col-12 text-center py-4">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                            <p class="text-muted mt-2">Loading sites...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NetBox VLANs Page -->
+                <div id="page-netbox-vlans" class="page-content">
+                    <div class="page-header mb-4">
+                        <h2><i class="bi bi-diagram-2 me-2"></i>NetBox VLANs</h2>
+                        <p class="text-muted">VLAN inventory from NetBox IPAM</p>
+                    </div>
+
+                    <!-- VLANs Section -->
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-0"><i class="bi bi-diagram-2 me-2"></i>VLANs</h5>
+                                        <small class="text-muted" id="vlansCountBadge"></small>
+                                    </div>
+                                    <button class="btn btn-dark btn-sm" id="refreshNetboxVlansBtn">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div id="netboxVlansTable"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NetBox Admin Page -->
+                <div id="page-netbox-admin" class="page-content">
+                    <div class="page-header mb-4">
+                        <h2><i class="bi bi-gear-fill me-2"></i>NetBox Configuration</h2>
+                        <p class="text-muted">Configure NetBox IPAM integration settings</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-10 mx-auto">
+                            <form id="netboxConfigForm">
+                                <!-- Netbox Configuration -->
+                                <div class="card shadow-sm mb-4">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h5 class="mb-0"><i class="bi bi-server me-2"></i>Netbox Configuration</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Netbox URL -->
+                                        <div class="mb-4">
+                                            <label for="netboxUrl" class="form-label fw-bold">
+                                                <i class="bi bi-globe text-warning me-2"></i>Netbox URL
+                                            </label>
+                                            <input type="url" class="form-control" id="netboxUrl" name="netbox_url" placeholder="https://netbox.example.com">
+                                            <small class="form-text text-muted">Base URL for Netbox API</small>
+                                        </div>
+
+                                        <!-- Netbox Username -->
+                                        <div class="mb-4">
+                                            <label for="netboxUsername" class="form-label fw-bold">
+                                                <i class="bi bi-person text-warning me-2"></i>Netbox Username
+                                            </label>
+                                            <input type="text" class="form-control" id="netboxUsername" name="netbox_username" placeholder="Enter username">
+                                            <small class="form-text text-muted">Username for Netbox authentication</small>
+                                        </div>
+
+                                        <!-- Netbox API Key -->
+                                        <div class="mb-4">
+                                            <label for="netboxApiKey" class="form-label fw-bold">
+                                                <i class="bi bi-key text-warning me-2"></i>Netbox API Key
+                                            </label>
+                                            <div class="input-group">
+                                                <input type="password" class="form-control" id="netboxApiKey" name="netbox_api_key" placeholder="Enter Netbox API Key">
+                                                <button class="btn btn-outline-secondary" type="button" id="toggleNetboxKey">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                            </div>
+                                            <small class="form-text text-muted">API key for Netbox integration</small>
+                                        </div>
+
+                                        <!-- Network Prefix Configuration -->
+                                        <div class="mt-4 pt-3 border-top">
+                                            <h6 class="mb-3"><i class="bi bi-diagram-3 me-2"></i>Network Prefix Settings</h6>
+
+                                            <div class="row mb-3">
+                                                <div class="col-md-10">
+                                                    <label for="netboxPrefixRole" class="form-label fw-bold">
+                                                        <i class="bi bi-tag text-warning me-2"></i>Select Prefix Role
+                                                    </label>
+                                                    <select class="form-select" id="netboxPrefixRole">
+                                                        <option value="">-- Select a Role --</option>
+                                                        <!-- Options loaded dynamically from NetBox API -->
+                                                    </select>
+                                                    <small class="form-text text-muted">Choose a role from NetBox IPAM for prefix categorization</small>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label fw-bold">&nbsp;</label>
+                                                    <button type="button" class="btn btn-warning w-100" id="addNetboxPrefixBtn">
+                                                        <i class="bi bi-plus-circle me-1"></i>Add
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Load Roles Button -->
+                                            <div class="mb-3">
+                                                <button type="button" class="btn btn-sm btn-outline-warning" id="loadNetboxRolesBtn">
+                                                    <i class="bi bi-arrow-clockwise me-1"></i>Load Roles from NetBox
+                                                </button>
+                                            </div>
+
+                                            <!-- Current Settings Display -->
+                                            <div class="table-responsive mt-3">
+                                                <table class="table table-sm table-bordered">
+                                                    <thead class="table-warning">
+                                                        <tr>
+                                                            <th>Role Name</th>
+                                                            <th>Slug</th>
+                                                            <th>Role ID</th>
+                                                            <th>Prefix ID</th>
+                                                            <th style="width: 80px;">Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="netboxSettingsTableBody">
+                                                        <tr>
+                                                            <td colspan="5" class="text-center text-muted">
+                                                                <em>No roles configured</em>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <!-- VLAN Group Configuration -->
+                                        <div class="mt-4 pt-3 border-top">
+                                            <h6 class="mb-3"><i class="bi bi-collection me-2"></i>VLAN Group Settings</h6>
+
+                                            <div class="row mb-3">
+                                                <div class="col-md-10">
+                                                    <label for="netboxVlanGroup" class="form-label fw-bold">
+                                                        <i class="bi bi-diagram-2 text-warning me-2"></i>Select VLAN Group
+                                                    </label>
+                                                    <select class="form-select" id="netboxVlanGroup">
+                                                        <option value="">-- Select a VLAN Group --</option>
+                                                        <!-- Options loaded dynamically from NetBox API -->
+                                                    </select>
+                                                    <small class="form-text text-muted">Choose a VLAN group from NetBox IPAM</small>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label fw-bold">&nbsp;</label>
+                                                    <button type="button" class="btn btn-warning w-100" id="addNetboxVlanGroupBtn">
+                                                        <i class="bi bi-plus-circle me-1"></i>Add
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Load VLAN Groups Button -->
+                                            <div class="mb-3">
+                                                <button type="button" class="btn btn-sm btn-outline-warning" id="loadNetboxVlanGroupsBtn">
+                                                    <i class="bi bi-arrow-clockwise me-1"></i>Load VLAN Groups from NetBox
+                                                </button>
+                                            </div>
+
+                                            <!-- Current VLAN Group Settings Display -->
+                                            <div class="table-responsive mt-3">
+                                                <table class="table table-sm table-bordered">
+                                                    <thead class="table-warning">
+                                                        <tr>
+                                                            <th>VLAN Group Name</th>
+                                                            <th>NetBox ID</th>
+                                                            <th>VLAN Range</th>
+                                                            <th style="width: 80px;">Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="netboxVlanGroupTableBody">
+                                                        <tr>
+                                                            <td colspan="4" class="text-center text-muted">
+                                                                <em>No VLAN groups configured</em>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <!-- Netbox Connection Test -->
+                                        <div class="mt-4 pt-3 border-top">
+                                            <h6 class="mb-3"><i class="bi bi-shield-check me-2"></i>Connection Test</h6>
+                                            <p class="text-muted mb-3">Test your NetBox API connection to verify configuration</p>
+                                            <button type="button" class="btn btn-warning" id="testNetboxConnectionBtn">
+                                                <i class="bi bi-play-circle me-2"></i>Test NetBox Connection
+                                            </button>
+                                            <div id="netboxConnectionResponse" class="alert mt-3" style="display: none;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Response Area -->
+                                <div id="netboxConfigResponse" class="alert" style="display: none;"></div>
+
+                                <!-- Action Buttons -->
+                                <div class="card shadow-sm mb-4">
+                                    <div class="card-body">
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bi bi-save me-2"></i>Save Configuration
+                                            </button>
+                                            <button type="button" class="btn btn-secondary" id="loadNetboxConfigBtn">
+                                                <i class="bi bi-arrow-clockwise me-2"></i>Load Current Config
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" id="clearNetboxConfigBtn">
+                                                <i class="bi bi-trash me-2"></i>Clear NetBox Config
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Admin Page -->
                 <div id="page-admin" class="page-content">
                     <div class="page-header mb-4">
@@ -679,23 +913,6 @@
                     <div class="row">
                         <div class="col-lg-10 mx-auto">
                             <form id="apiKeysForm">
-                                <!-- Fabric Name Configuration -->
-                                <div class="card shadow-sm mb-4">
-                                    <div class="card-header bg-success text-white">
-                                        <h5 class="mb-0"><i class="bi bi-grid-3x3 me-2"></i>Fabric Name Configuration</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <!-- Nexus Dashboard Fabric Name -->
-                                        <div class="mb-4">
-                                            <label for="nexusFabricName" class="form-label fw-bold">
-                                                <i class="bi bi-diagram-3 text-success me-2"></i>Fabric Name
-                                            </label>
-                                            <input type="text" class="form-control" id="nexusFabricName" name="nexus_fabric_name" placeholder="Enter fabric name">
-                                            <small class="form-text text-muted">Specific fabric to manage in Nexus Dashboard (e.g., DC1-Fabric)</small>
-                                        </div>
-                                    </div>
-                                </div>
-
                                 <!-- NaC-API Configuration -->
                                 <div class="card shadow-sm mb-4">
                                     <div class="card-header bg-primary text-white">
@@ -821,6 +1038,15 @@
                                             </label>
                                             <input type="text" class="form-control" id="nexusUsername" name="nexus_username" placeholder="Enter username">
                                             <small class="form-text text-muted">Username for Nexus Dashboard authentication</small>
+                                        </div>
+
+                                        <!-- Fabric Name -->
+                                        <div class="mb-4">
+                                            <label for="nexusFabricName" class="form-label fw-bold">
+                                                <i class="bi bi-diagram-3 text-info me-2"></i>Fabric Name
+                                            </label>
+                                            <input type="text" class="form-control" id="nexusFabricName" name="nexus_fabric_name" placeholder="Enter fabric name">
+                                            <small class="form-text text-muted">Specific fabric to manage in Nexus Dashboard (e.g., DC1-Fabric)</small>
                                         </div>
 
                                         <!-- Nexus Dashboard Connection Test -->
@@ -1003,6 +1229,20 @@
                     </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container for notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 11000;">
+        <div id="globalToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="bi me-2" id="toastIcon"></i>
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastBody">
+                Message
             </div>
         </div>
     </div>

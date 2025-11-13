@@ -5,7 +5,7 @@ from flask import Blueprint, jsonify, request
 import os
 import yaml
 import requests
-from ...nac_api import get_nac_client
+from ...nac_api import get_nac_client, reset_nac_client
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -118,12 +118,22 @@ def save_admin_config():
                 'url': data.get('nexus_url', ''),
                 'username': data.get('nexus_username', ''),
                 'fabric_name': data.get('nexus_fabric_name', '')
+            },
+            'netbox': {
+                'url': data.get('netbox_url', ''),
+                'username': data.get('netbox_username', ''),
+                'api_key': data.get('netbox_api_key', ''),
+                'prefix_settings': data.get('netbox_prefix_settings', []),
+                'vlan_group_settings': data.get('netbox_vlan_group_settings', [])
             }
         }
 
         # Write to YAML file
         with open(config_path, 'w') as f:
             yaml.dump(config_data, f, default_flow_style=False, sort_keys=False)
+
+        # Reset NAC client singleton to force reload of new configuration
+        reset_nac_client()
 
         return jsonify({
             'status': 'success',
@@ -161,7 +171,12 @@ def load_admin_config():
                     'scm_provider': '',
                     'scm_api_url': '',
                     'repository_url': '',
-                    'data_sources_dir': ''
+                    'data_sources_dir': '',
+                    'netbox_url': '',
+                    'netbox_username': '',
+                    'netbox_api_key': '',
+                    'netbox_prefix_settings': [],
+                    'netbox_vlan_group_settings': []
                 }
             })
 
@@ -181,7 +196,12 @@ def load_admin_config():
                 'nexus_api_key': config_data.get('nexus_dashboard', {}).get('api_key', ''),
                 'nexus_url': config_data.get('nexus_dashboard', {}).get('url', ''),
                 'nexus_username': config_data.get('nexus_dashboard', {}).get('username', ''),
-                'nexus_fabric_name': config_data.get('nexus_dashboard', {}).get('fabric_name', '')
+                'nexus_fabric_name': config_data.get('nexus_dashboard', {}).get('fabric_name', ''),
+                'netbox_url': config_data.get('netbox', {}).get('url', ''),
+                'netbox_username': config_data.get('netbox', {}).get('username', ''),
+                'netbox_api_key': config_data.get('netbox', {}).get('api_key', ''),
+                'netbox_prefix_settings': config_data.get('netbox', {}).get('prefix_settings', []),
+                'netbox_vlan_group_settings': config_data.get('netbox', {}).get('vlan_group_settings', [])
             }
         })
     except Exception as e:
@@ -261,7 +281,8 @@ def test_nac_api_connection():
               example: "Connection test failed: Connection timeout"
     """
     try:
-        client = get_nac_client()
+        # Force reload of configuration before testing
+        client = get_nac_client(reload_config=True)
         result = client.test_connection()
 
         if result['status'] == 'success':

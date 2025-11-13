@@ -78,12 +78,30 @@ class NacApiClient:
         except Exception as e:
             logger.error(f"Failed to load configuration: {str(e)}")
 
-    def _ensure_config(self) -> bool:
-        """Ensure required configuration is present"""
-        if not all([self.api_url, self.api_key, self.scm_provider, self.scm_api_url]):
-            logger.error("NaC API not configured. Please configure via Admin panel.")
-            return False
-        return True
+    def _ensure_config(self) -> tuple[bool, str]:
+        """
+        Ensure required configuration is present
+
+        Returns:
+            Tuple of (is_configured, error_message)
+        """
+        missing_fields = []
+
+        if not self.api_url:
+            missing_fields.append("NAC-API URL")
+        if not self.api_key:
+            missing_fields.append("Passthrough API Key")
+        if not self.scm_provider:
+            missing_fields.append("SCM Provider")
+        if not self.scm_api_url:
+            missing_fields.append("SCM API URL")
+
+        if missing_fields:
+            error_msg = f"NaC API configuration incomplete. Missing required fields: {', '.join(missing_fields)}. Please configure in Admin panel."
+            logger.error(error_msg)
+            return False, error_msg
+
+        return True, ""
 
     def _set_auth_headers(self):
         """Set authentication headers for API requests"""
@@ -119,7 +137,8 @@ class NacApiClient:
         Returns:
             Response JSON data or None if request failed
         """
-        if not self._ensure_config():
+        is_configured, _ = self._ensure_config()
+        if not is_configured:
             return None
 
         try:
@@ -148,7 +167,8 @@ class NacApiClient:
         Returns:
             Response JSON data or None if request failed
         """
-        if not self._ensure_config():
+        is_configured, _ = self._ensure_config()
+        if not is_configured:
             return None
 
         try:
@@ -180,7 +200,8 @@ class NacApiClient:
         Returns:
             Response JSON data or None if request failed
         """
-        if not self._ensure_config():
+        is_configured, _ = self._ensure_config()
+        if not is_configured:
             return None
 
         try:
@@ -211,7 +232,8 @@ class NacApiClient:
         Returns:
             True if deletion successful, False otherwise
         """
-        if not self._ensure_config():
+        is_configured, _ = self._ensure_config()
+        if not is_configured:
             return False
 
         try:
@@ -646,19 +668,29 @@ class NacApiClient:
         Returns:
             Dictionary with status and message
         """
-        if not self._ensure_config():
+        is_configured, error_msg = self._ensure_config()
+        if not is_configured:
             return {
                 'status': 'error',
-                'message': 'NaC API not configured. Please configure via Admin panel.'
+                'message': error_msg
             }
 
         try:
+            # Log connection attempt details
+            test_url = f"{self.api_url}/api/v1/operations/read"
+            logger.info(f"Testing connection to: {test_url}")
+            logger.info(f"Authentication: passthrough {self.api_key[:10] if self.api_key else 'None'}...")
+            logger.info(f"x-git-config: api_url={self.scm_api_url};repository={self.repository_url};type={self.scm_provider}")
+
             # Try to read data model as a connection test
             response = self.session.get(
-                f"{self.api_url}/api/v1/operations/read",
+                test_url,
                 verify=False,
                 timeout=10
             )
+
+            logger.info(f"Response status: {response.status_code}")
+            logger.info(f"Response headers: {dict(response.headers)}")
 
             if response.status_code in [200, 201]:
                 return {
@@ -669,9 +701,10 @@ class NacApiClient:
                     'size_of_data_model': len(response.content)
                 }
             else:
+                logger.error(f"Response body: {response.text[:500]}")
                 return {
                     'status': 'error',
-                    'message': f'NaC API returned status code {response.status_code}'
+                    'message': f'NaC API returned status code {response.status_code}: {response.text[:200]}'
                 }
 
         except requests.exceptions.Timeout:
@@ -712,7 +745,8 @@ class NacApiClient:
         Returns:
             Response JSON data or None if request failed
         """
-        if not self._ensure_config():
+        is_configured, _ = self._ensure_config()
+        if not is_configured:
             return None
 
         # Build operation payload
@@ -785,7 +819,8 @@ class NacApiClient:
             ]
             client.batch_operation(changes, apply=False)
         """
-        if not self._ensure_config():
+        is_configured, _ = self._ensure_config()
+        if not is_configured:
             return None
 
         # Build batch operation payload
@@ -925,9 +960,12 @@ class NacApiClient:
 _nac_client_instance = None
 
 
-def get_nac_client() -> NacApiClient:
+def get_nac_client(reload_config: bool = False) -> NacApiClient:
     """
     Get or create singleton NaC API client instance
+
+    Args:
+        reload_config: If True, force reload of configuration from file
 
     Returns:
         NacApiClient instance
@@ -936,5 +974,20 @@ def get_nac_client() -> NacApiClient:
 
     if _nac_client_instance is None:
         _nac_client_instance = NacApiClient()
+    elif reload_config:
+        # Reload configuration for existing client
+        _nac_client_instance._load_config()
+        _nac_client_instance._set_auth_headers()
+        logger.info("NaC API client configuration reloaded")
 
     return _nac_client_instance
+
+
+def reset_nac_client():
+    """
+    Reset the singleton NaC API client instance.
+    This forces a fresh client to be created on next get_nac_client() call.
+    """
+    global _nac_client_instance
+    _nac_client_instance = None
+    logger.info("NaC API client instance reset")

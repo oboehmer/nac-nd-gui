@@ -30,61 +30,27 @@ See global memory for universal Flask patterns (REST API, Bootstrap CDN, Fetch A
 **Impact**: Validated memory system self-processing capability; demonstrated robust automated workflow
 **Added**: [2025-10-22T20:15:00Z]
 
-### Nexus Dashboard API Client Implementation
-**Authentication**: Header-based (X-Nd-Username, X-Nd-Apikey) - no token expiration handling needed
-**Response Handling**: Polymorphic isinstance() checking for list/dict/other response types
-**Configuration**: YAML-driven with singleton factory pattern
-**Project Context**: nexus_dashboard_client.py with get_client() factory
-**See Global**: API Client with Configuration Management, Polymorphic API Response Handling patterns
+### Multi-API Client Architecture
+**Pattern**: Three YAML-driven API clients with unified configuration, authentication, and error handling patterns
+**Implementations**:
+- **Nexus Dashboard** (nexus_dashboard_client.py): Header auth (X-Nd-Username/X-Nd-Apikey); singleton factory; polymorphic response handling
+- **NaC API** (nac_api.py): Bearer token + SCM header (GitHub/GitLab/Bitbucket/Azure); singleton factory; RESTful methods + generic operation pattern
+- **NetBox IPAM** (netbox_api.py): Token auth; requests.Session; full CRUD + bulk IPAM operations (prefixes, IPs, VLANs, sites, devices)
+**Common Patterns**: YAML config with _load_config() + _ensure_config(); connection test endpoints; 30s timeouts; comprehensive error handling
+**See Global**: API Client with Configuration Management, Full-Stack Configuration patterns
 
-### Configuration Management Implementation
-**Full-Stack Field Addition**: HTML (id/name) → Flask API (save/load/empty) → JS (capture/submit) → YAML storage
-**Testing**: Test configs for validation scenarios (config_test_no_fabric.yaml, config_test_wrong_fabric.yaml)
-**Project Context**: 3 Flask app.py update locations; fabric_name field example with nexusFabricName HTML id
-**See Global**: Full-Stack Configuration Field Addition, Configuration Testing patterns
-
-### API Documentation
-**Implementation**: Swagger/Flasgger with OpenAPI 2.0; 4 tag groups (General, Tables, Admin, Nexus Dashboard)
-**Endpoints**: /swagger/ (interactive UI), /apispec.json (programmatic access)
-**Project Context**: Automatic Flask route discovery; no manual docstring formatting
-**See Global**: Swagger/Flasgger API Documentation Pattern
-
-### Flask Blueprint Modularization
-**Implementation**: Created api/v1/ structure with domain modules (tables.py: 8.4KB, admin.py: 5.5KB, nexus.py: 10.8KB)
-**Project Context**: Migrated from monolithic app.py to modular blueprint architecture
-**See Global**: Flask Blueprint Modularization Pattern
-
-### Iterative Frontend Refinement
-**Implementation**: 14 successive edits to static/js/app.js for gradual enhancement
-**Project Context**: Applied to app.js refinement with controlled testing
-**See Global**: Iterative Frontend Refinement Pattern
+### Configuration & Documentation Patterns
+**Full-Stack Config**: HTML→Flask API (save/load/empty)→JS→YAML; test configs for validation
+**API Docs**: Swagger/Flasgger OpenAPI 2.0; /swagger/ UI + /apispec.json; 4 tag groups
+**Blueprint Architecture**: api/v1/ modular structure (tables.py, admin.py, nexus.py)
+**Iterative Refinement**: 14 successive edits for gradual enhancement with controlled testing
+**See Global**: Full-Stack Configuration, Swagger/Flasgger, Flask Blueprint, Iterative Frontend patterns
 
 ### Memory Archival Workflow
-**Pattern**: Systematic capacity management through monitoring → identification → archival → validation
-**Implementation**: Monitor file sizes (wc -c); identify archival candidates (age, specificity, reuse); create dated archive structure (YYYY-QQ); archive with context; update source with references; re-measure and validate
-**Results**: Reduced global lessons-learned.md from 91.5%→76.9% capacity by archiving 8 Terraform patterns (1,192 bytes / 15.9%)
-**Context**: Applied when any memory file exceeds 85% capacity threshold
+**Pattern**: Monitor (wc -c) → identify candidates (age, specificity) → create dated archive (YYYY-QQ) → update refs → validate
+**Results**: 91.5%→76.9% reduction by archiving 8 Terraform patterns (1,192 bytes / 15.9%)
+**Context**: Applied when files exceed 85% capacity
 **Added**: [2025-10-30T15:30:00Z]
-**Additional Details**: Created ~/.claude/memory/archive/2025-Q3/terraform-infrastructure-patterns.md with full pattern content preserved for searchability while reducing active memory footprint
-
-### API Connection Testing Implementation
-**Implementation**: Configuration-driven connection test endpoints with comprehensive error handling
-**Project Context**: /test-nac-connection (Bearer auth), /test-nd-connection (header auth), /test-nac-api-connection (multi-provider SCM auth) endpoints in admin.py
-**Specifics**: Tests NaC API, Nexus Dashboard API, and SCM API (GitHub/GitLab/Bitbucket/Azure DevOps) connectivity
-**See Global**: API Connection Test Endpoint Pattern (promoted 2025-10-23)
-**Added**: [2025-10-23T16:15:00Z]
-**Updated**: [2025-10-23T16:22:00Z]
-
-### NaC API Client Implementation
-**Authentication**: Passthrough token + x-git-config header (api_url, repository, data_sources, type)
-**Configuration**: YAML-driven with _load_config() + _ensure_config() validation
-**Client Pattern**: Singleton factory (get_nac_client()) with session reuse
-**Project Context**: nac_api.py with NacApiClient class; integrated with admin.py
-**Methods**: RESTful (get/post/put/delete) + convenience (read_data_model, test_connection)
-**Error Handling**: Configuration validation, 30s timeout, ConnectionError/RequestException logging
-**SCM Support**: GitHub, GitLab, Bitbucket (cloud/local), Azure DevOps via provider-specific header construction
-**See Global**: API Client with Configuration Management Pattern
-**Added**: [2025-10-23T17:30:00Z]
 
 ### Python Package Modernization
 **Pattern**: Migration from flat structure to src/ layout with modern packaging standards

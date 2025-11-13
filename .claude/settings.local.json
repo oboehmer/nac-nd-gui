@@ -9,7 +9,8 @@
       "Bash(xargs kill:*)",
       "Bash(uv sync:*)",
       "Bash(uv run python:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []

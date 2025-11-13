@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <!-- Define styles -->
+  <defs>
+    <style>
+      .spine-switch { fill: #2563eb; stroke: #1e40af; stroke-width: 2; }
+      .leaf-switch { fill: #10b981; stroke: #059669; stroke-width: 2; }
+      .connection { stroke: #6b7280; stroke-width: 1.5; opacity: 0.4; }
+      .label { fill: white; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; text-anchor: middle; }
+      .title { fill: #1f2937; font-family: Arial, sans-serif; font-size: 24px; font-weight: bold; text-anchor: middle; }
+      .subtitle { fill: #4b5563; font-family: Arial, sans-serif; font-size: 16px; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="800" fill="#f9fafb"/>
+
+  <!-- Title -->
+  <text x="600" y="40" class="title">VXLAN/EVPN Spine-Leaf Topology</text>
+  <text x="600" y="65" class="subtitle">4 Spines × 8 Leafs (Full Mesh)</text>
+
+  <!-- Draw connections first (so they appear behind switches) -->
+  <!-- Spine 1 to all leafs -->
+  <line x1="200" y1="150" x2="100" y2="350" class="connection"/>
+  <line x1="200" y1="150" x2="225" y2="350" class="connection"/>
+  <line x1="200" y1="150" x2="350" y2="350" class="connection"/>
+  <line x1="200" y1="150" x2="475" y2="350" class="connection"/>
+  <line x1="200" y1="150" x2="600" y2="350" class="connection"/>
+  <line x1="200" y1="150" x2="725" y2="350" class="connection"/>
+  <line x1="200" y1="150" x2="850" y2="350" class="connection"/>
+  <line x1="200" y1="150" x2="975" y2="350" class="connection"/>
+
+  <!-- Spine 2 to all leafs -->
+  <line x1="400" y1="150" x2="100" y2="350" class="connection"/>
+  <line x1="400" y1="150" x2="225" y2="350" class="connection"/>
+  <line x1="400" y1="150" x2="350" y2="350" class="connection"/>
+  <line x1="400" y1="150" x2="475" y2="350" class="connection"/>
+  <line x1="400" y1="150" x2="600" y2="350" class="connection"/>
+  <line x1="400" y1="150" x2="725" y2="350" class="connection"/>
+  <line x1="400" y1="150" x2="850" y2="350" class="connection"/>
+  <line x1="400" y1="150" x2="975" y2="350" class="connection"/>
+
+  <!-- Spine 3 to all leafs -->
+  <line x1="600" y1="150" x2="100" y2="350" class="connection"/>
+  <line x1="600" y1="150" x2="225" y2="350" class="connection"/>
+  <line x1="600" y1="150" x2="350" y2="350" class="connection"/>
+  <line x1="600" y1="150" x2="475" y2="350" class="connection"/>
+  <line x1="600" y1="150" x2="600" y2="350" class="connection"/>
+  <line x1="600" y1="150" x2="725" y2="350" class="connection"/>
+  <line x1="600" y1="150" x2="850" y2="350" class="connection"/>
+  <line x1="600" y1="150" x2="975" y2="350" class="connection"/>
+
+  <!-- Spine 4 to all leafs -->
+  <line x1="800" y1="150" x2="100" y2="350" class="connection"/>
+  <line x1="800" y1="150" x2="225" y2="350" class="connection"/>
+  <line x1="800" y1="150" x2="350" y2="350" class="connection"/>
+  <line x1="800" y1="150" x2="475" y2="350" class="connection"/>
+  <line x1="800" y1="150" x2="600" y2="350" class="connection"/>
+  <line x1="800" y1="150" x2="725" y2="350" class="connection"/>
+  <line x1="800" y1="150" x2="850" y2="350" class="connection"/>
+  <line x1="800" y1="150" x2="975" y2="350" class="connection"/>
+
+  <!-- Spine Switches (Layer) -->
+  <g id="spines">
+    <!-- Spine 1 -->
+    <rect x="150" y="120" width="100" height="60" rx="5" class="spine-switch"/>
+    <text x="200" y="155" class="label">SPINE-1</text>
+
+    <!-- Spine 2 -->
+    <rect x="350" y="120" width="100" height="60" rx="5" class="spine-switch"/>
+    <text x="400" y="155" class="label">SPINE-2</text>
+
+    <!-- Spine 3 -->
+    <rect x="550" y="120" width="100" height="60" rx="5" class="spine-switch"/>
+    <text x="600" y="155" class="label">SPINE-3</text>
+
+    <!-- Spine 4 -->
+    <rect x="750" y="120" width="100" height="60" rx="5" class="spine-switch"/>
+    <text x="800" y="155" class="label">SPINE-4</text>
+  </g>
+
+  <!-- Leaf Switches (Layer) -->
+  <g id="leafs">
+    <!-- Leaf 1 -->
+    <rect x="50" y="320" width="100" height="60" rx="5" class="leaf-switch"/>
+    <text x="100" y="355" class="label">LEAF-1</text>
+
+    <!-- Leaf 2 -->
+    <rect x="175" y="320" width="100" height="60" rx="5" class="leaf-switch"/>
+    <text x="225" y="355" class="label">LEAF-2</text>
+
+    <!-- Leaf 3 -->
+    <rect x="300" y="320" width="100" height="60" rx="5" class="leaf-switch"/>
+    <text x="350" y="355" class="label">LEAF-3</text>
+
+    <!-- Leaf 4 -->
+    <rect x="425" y="320" width="100" height="60" rx="5" class="leaf-switch"/>
+    <text x="475" y="355" class="label">LEAF-4</text>
+
+    <!-- Leaf 5 -->
+    <rect x="550" y="320" width="100" height="60" rx="5" class="leaf-switch"/>
+    <text x="600" y="355" class="label">LEAF-5</text>
+
+    <!-- Leaf 6 -->
+    <rect x="675" y="320" width="100" height="60" rx="5" class="leaf-switch"/>
+    <text x="725" y="355" class="label">LEAF-6</text>
+
+    <!-- Leaf 7 -->
+    <rect x="800" y="320" width="100" height="60" rx="5" class="leaf-switch"/>
+    <text x="850" y="355" class="label">LEAF-7</text>
+
+    <!-- Leaf 8 -->
+    <rect x="925" y="320" width="100" height="60" rx="5" class="leaf-switch"/>
+    <text x="975" y="355" class="label">LEAF-8</text>
+  </g>
+
+  <!-- Workload/Host representations -->
+  <g id="workloads">
+    <!-- Server icons below leafs -->
+    <g transform="translate(75, 450)">
+      <rect x="0" y="0" width="50" height="40" rx="3" fill="#9ca3af" stroke="#6b7280" stroke-width="1.5"/>
+      <line x1="10" y1="10" x2="40" y2="10" stroke="#ffffff" stroke-width="2"/>
+      <line x1="10" y1="20" x2="40" y2="20" stroke="#ffffff" stroke-width="2"/>
+      <line x1="10" y1="30" x2="40" y2="30" stroke="#ffffff" stroke-width="2"/>
+      <text x="25" y="60" style="fill: #4b5563; font-size: 11px; text-anchor: middle; font-family: Arial;">Hosts</text>
+    </g>
+
+    <g transform="translate(200, 450)">
+      <rect x="0" y="0" width="50" height="40" rx="3" fill="#9ca3af" stroke="#6b7280" stroke-width="1.5"/>
+      <line x1="10" y1="10" x2="40" y2="10" stroke="#ffffff" stroke-width="2"/>
+      <line x1="10" y1="20" x2="40" y2="20" stroke="#ffffff" stroke-width="2"/>
+      <line x1="10" y1="30" x2="40" y2="30" stroke="#ffffff" stroke-width="2"/>
+      <text x="25" y="60" style="fill: #4b5563; font-size: 11px; text-anchor: middle; font-family: Arial;">Hosts</text>
+    </g>
+
+    <g transform="translate(325, 450)">
+      <rect x="0" y="0" width="50" height="40" rx="3" fill="#9ca3af" stroke="#6b7280" stroke-width="1.5"/>
+      <line x1="10" y1="10" x2="40" y2="10" stroke="#ffffff" stroke-width="2"/>
+      <line x1="10" y1="20" x2="40" y2="20" stroke="#ffffff" stroke-width="2"/>
+      <line x1="10" y1="30" x2="40" y2="30" stroke="#ffffff" stroke-width="2"/>
+      <text x="25" y="60" style="fill: #4b5563; font-size: 11px; text-anchor: middle; font-family: Arial;">Hosts</text>
+    </g>
+
+    <g transform="translate(450, 450)">
+      <rect x="0" y="0" width="50" height="40" rx="3" fill="#9ca3af" stroke="#6b7280" stroke-width="1.5"/>
+      <line x1="10" y1="10" x2="40" y2="10" stroke="#ffffff" stroke-width="2"/>
+      <line x1="10" y1="20" x2="40" y2="20" stroke="#ffffff" stroke-width="2"/>
+      <line x1="10" y1="30" x2="40" y2="30" stroke="#ffffff" stroke-width="2"/>
+      <text x="25" y="60" style="fill: #4b5563; font-size: 11px; text-anchor: middle; font-family: Arial;">Hosts</text>
+    </g>
+
+    <g transform="translate(575, 450)">
+      <rect x="0" y="0" width="50" height="40" rx="3" fill="#9ca3af" stroke="#6b7280" stroke-width="1.5"/>
+      <line x1="10" y1="10" x2="40" y2="10" stroke="#ffffff" stroke-width="2"/>
+      <line x1="10" y1="20" x2="40" y2="20" stroke="#ffffff" stroke-width="2"/>
+      <line x1="10" y1="30" x2="40" y2="30" stroke="#ffffff" stroke-width="2"/>
+      <text x="25" y="60" style="fill: #4b5563; font-size: 11px; text-anchor: middle; font-family: Arial;">Hosts</text>
+    </g>
+
+    <g transform="translate(700, 450)">
+      <rect x="0" y="0" width="50" height="40" rx="3" fill="#9ca3af" stroke="#6b7280" stroke-width="1.5"/>
+      <line x1="10" y1="10" x2="40" y2="10" stroke="#ffffff" stroke-width="2"/>
+      <line x1="10" y1="20" x2="40" y2="20" stroke="#ffffff" stroke-width="2"/>
+      <line x1="10" y1="30" x2="40" y2="30" stroke="#ffffff" stroke-width="2"/>
+      <text x="25" y="60" style="fill: #4b5563; font-size: 11px; text-anchor: middle; font-family: Arial;">Hosts</text>
+    </g>
+
+    <g transform="translate(825, 450)">
+      <rect x="0" y="0" width="50" height="40" rx="3" fill="#9ca3af" stroke="#6b7280" stroke-width="1.5"/>
+      <line x1="10" y1="10" x2="40" y2="10" stroke="#ffffff" stroke-width="2"/>
+      <line x1="10" y1="20" x2="40" y2="20" stroke="#ffffff" stroke-width="2"/>
+      <line x1="10" y1="30" x2="40" y2="30" stroke="#ffffff" stroke-width="2"/>
+      <text x="25" y="60" style="fill: #4b5563; font-size: 11px; text-anchor: middle; font-family: Arial;">Hosts</text>
+    </g>
+
+    <g transform="translate(950, 450)">
+      <rect x="0" y="0" width="50" height="40" rx="3" fill="#9ca3af" stroke="#6b7280" stroke-width="1.5"/>
+      <line x1="10" y1="10" x2="40" y2="10" stroke="#ffffff" stroke-width="2"/>
+      <line x1="10" y1="20" x2="40" y2="20" stroke="#ffffff" stroke-width="2"/>
+      <line x1="10" y1="30" x2="40" y2="30" stroke="#ffffff" stroke-width="2"/>
+      <text x="25" y="60" style="fill: #4b5563; font-size: 11px; text-anchor: middle; font-family: Arial;">Hosts</text>
+    </g>
+
+    <!-- Connection lines from leafs to hosts -->
+    <line x1="100" y1="380" x2="100" y2="450" stroke="#6b7280" stroke-width="1.5" opacity="0.4"/>
+    <line x1="225" y1="380" x2="225" y2="450" stroke="#6b7280" stroke-width="1.5" opacity="0.4"/>
+    <line x1="350" y1="380" x2="350" y2="450" stroke="#6b7280" stroke-width="1.5" opacity="0.4"/>
+    <line x1="475" y1="380" x2="475" y2="450" stroke="#6b7280" stroke-width="1.5" opacity="0.4"/>
+    <line x1="600" y1="380" x2="600" y2="450" stroke="#6b7280" stroke-width="1.5" opacity="0.4"/>
+    <line x1="725" y1="380" x2="725" y2="450" stroke="#6b7280" stroke-width="1.5" opacity="0.4"/>
+    <line x1="850" y1="380" x2="850" y2="450" stroke="#6b7280" stroke-width="1.5" opacity="0.4"/>
+    <line x1="975" y1="380" x2="975" y2="450" stroke="#6b7280" stroke-width="1.5" opacity="0.4"/>
+  </g>
+
+  <!-- Legend -->
+  <g id="legend" transform="translate(50, 650)">
+    <text x="0" y="0" style="fill: #1f2937; font-size: 16px; font-weight: bold; font-family: Arial;">Topology Features:</text>
+
+    <rect x="0" y="15" width="20" height="20" rx="2" class="spine-switch"/>
+    <text x="30" y="30" style="fill: #4b5563; font-size: 13px; font-family: Arial;">Spine Switches (Underlay + EVPN Route Reflectors)</text>
+
+    <rect x="0" y="45" width="20" height="20" rx="2" class="leaf-switch"/>
+    <text x="30" y="60" style="fill: #4b5563; font-size: 13px; font-family: Arial;">Leaf Switches (VTEP + BGP EVPN Peers)</text>
+
+    <line x1="0" y1="80" x2="20" y2="80" class="connection" stroke-width="2"/>
+    <text x="30" y="85" style="fill: #4b5563; font-size: 13px; font-family: Arial;">Full Mesh Connectivity (32 uplinks total)</text>
+
+    <text x="500" y="30" style="fill: #4b5563; font-size: 13px; font-family: Arial;">• VXLAN Overlay Network</text>
+    <text x="500" y="50" style="fill: #4b5563; font-size: 13px; font-family: Arial;">• BGP EVPN Control Plane</text>
+    <text x="500" y="70" style="fill: #4b5563; font-size: 13px; font-family: Arial;">• Layer 2/3 Stretched Fabrics</text>
+    <text x="500" y="90" style="fill: #4b5563; font-size: 13px; font-family: Arial;">• Anycast Gateway Support</text>
+  </g>
+
+  <!-- Technical annotations -->
+  <g id="annotations">
+    <text x="1000" y="150" style="fill: #2563eb; font-size: 12px; font-family: monospace; font-weight: bold;">BGP EVPN</text>
+    <text x="1000" y="165" style="fill: #2563eb; font-size: 12px; font-family: monospace; font-weight: bold;">AS 65000</text>
+
+    <text x="1050" y="350" style="fill: #10b981; font-size: 12px; font-family: monospace; font-weight: bold;">VTEP</text>
+    <text x="1050" y="365" style="fill: #10b981; font-size: 12px; font-family: monospace; font-weight: bold;">Leafs</text>
+  </g>
+</svg>

@@ -1,0 +1,2 @@
+VID,Name,Group,Tenant,Status,Description,ID,Tenant Group,VXLAN L2 VNID
+1001,VLAN1001,RTP VXLAN Fabric 1,NaC-Raf,Active,VLAN 1001,8,NaC,13001

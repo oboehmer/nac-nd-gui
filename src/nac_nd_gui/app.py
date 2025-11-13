@@ -59,6 +59,10 @@ swagger_template = {
         {
             "name": "NaC API",
             "description": "Network as Code API integration endpoints"
+        },
+        {
+            "name": "NetBox",
+            "description": "NetBox IPAM integration endpoints"
         }
     ]
 }
