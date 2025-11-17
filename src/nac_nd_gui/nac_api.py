@@ -428,6 +428,57 @@ class NacApiClient:
             }
         return None
 
+    def get_data_model_network_attachments(self) -> Optional[Dict[str, Any]]:
+        """
+        Get a list of all network attach group in the data model (lightweight version)
+
+        Returns:
+            List of network attach groups or None if request failed
+        """
+        response = self.get('/api/v1/operations/read?path=vxlan/overlay/network_attach_groups')
+        if response:
+            # Return a summary instead of the full model
+            return {
+                'status': 'success',
+                'size_bytes': len(str(response)),
+                'keys': list(response.keys()) if isinstance(response, dict) else None
+            }
+        return None
+
+
+    def get_network_attach_groups_full(self) -> Optional[list]:
+        """
+        Get Network Attach Groups with full details
+
+        Returns:
+            List of network attach group dictionaries with 'name' field, or None if request failed
+        """
+        logger.info("Fetching Network Attach Groups from NaC API")
+        response = self.get('/api/v1/operations/read?path=vxlan/overlay/network_attach_groups')
+
+        if response is None:
+            logger.error("Failed to retrieve network attach groups from NaC API")
+            return None
+
+        # Response is always a list of dictionaries
+        if not isinstance(response, list):
+            logger.error(f"Unexpected response type: {type(response)}. Expected list of dictionaries.")
+            return None
+
+        logger.info(f"Processing {len(response)} network attach groups from API response")
+
+        # Extract just the names for dropdown
+        attach_groups_list = []
+        for group in response:
+            if isinstance(group, dict) and 'name' in group:
+                attach_groups_list.append({
+                    'name': group['name']
+                })
+
+        logger.info(f"Returning {len(attach_groups_list)} network attach groups")
+        return attach_groups_list
+
+
     def get_networks_for_table(self) -> Optional[list]:
         """
         Get Networks formatted for table display

@@ -81,12 +81,21 @@ class NexusDashboardClient:
     def _set_auth_headers(self):
         """Set authentication headers for API requests"""
         if self.username and self.api_key:
-            self.session.headers.update({
-                'X-Nd-Username': self.username,
-                'X-Nd-Apikey': self.api_key,
-                'Content-Type': 'application/json'
-            })
-            logger.info("Authentication headers set successfully")
+            try:
+                # HTTP headers must be ASCII/Latin-1 compatible
+                # Validate that username and api_key can be encoded
+                username_encoded = self.username.encode('latin-1').decode('latin-1')
+                api_key_encoded = self.api_key.encode('latin-1').decode('latin-1')
+
+                self.session.headers.update({
+                    'X-Nd-Username': username_encoded,
+                    'X-Nd-Apikey': api_key_encoded,
+                    'Content-Type': 'application/json'
+                })
+                logger.info("Authentication headers set successfully")
+            except UnicodeEncodeError as e:
+                logger.error(f"Invalid characters in username or API key. HTTP headers must contain only ASCII/Latin-1 characters: {str(e)}")
+                raise ValueError("Username and API key must contain only ASCII/Latin-1 characters")
 
     def get(self, endpoint: str, params: Optional[Dict] = None) -> Optional[Dict[str, Any]]:
         """
@@ -367,3 +376,15 @@ def get_nexus_client() -> NexusDashboardClient:
         _nexus_client_instance = NexusDashboardClient()
 
     return _nexus_client_instance
+
+
+def reset_nexus_client():
+    """
+    Reset the singleton Nexus Dashboard client instance.
+    This forces a reload of configuration on next access.
+    """
+    global _nexus_client_instance
+    if _nexus_client_instance is not None:
+        _nexus_client_instance.close()
+        _nexus_client_instance = None
+        logger.info("Nexus Dashboard client instance reset")

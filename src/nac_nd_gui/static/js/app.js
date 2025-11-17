@@ -141,10 +141,13 @@ function loadPageContent(page, parent) {
         // Initialize table for this page if not already done
         initializeTableForPage(page);
 
-        // Load VRF dropdown and fabric name for action-networks page
+        // Load VRF dropdown, attach groups dropdown, and fabric name for action-networks page
         if (page === 'action-networks') {
             if (typeof loadVrfDropdown === 'function') {
                 loadVrfDropdown();
+            }
+            if (typeof loadAttachGroupsDropdown === 'function') {
+                loadAttachGroupsDropdown();
             }
             if (typeof loadNetworkFabricName === 'function') {
                 loadNetworkFabricName();
@@ -250,10 +253,16 @@ function initializeAdminHandlers() {
         clearConfigBtn.addEventListener('click', clearAdminConfig);
     }
 
-    // Test Nexus Dashboard connection button
-    const testNexusConnectionBtn = document.getElementById('testNexusConnectionBtn');
-    if (testNexusConnectionBtn) {
-        testNexusConnectionBtn.addEventListener('click', testNexusConnection);
+    // Test Saved Nexus Dashboard configuration button
+    const testSavedNexusConfigBtn = document.getElementById('testSavedNexusConfigBtn');
+    if (testSavedNexusConfigBtn) {
+        testSavedNexusConfigBtn.addEventListener('click', testSavedNexusConfig);
+    }
+
+    // Test New Nexus Dashboard configuration button
+    const testNewNexusConfigBtn = document.getElementById('testNewNexusConfigBtn');
+    if (testNewNexusConfigBtn) {
+        testNewNexusConfigBtn.addEventListener('click', testNewNexusConfig);
     }
 
     // Test NaC API (SCM) connection button
@@ -435,6 +444,7 @@ async function handleNetworkActionSubmit(event) {
         // Get form values
         const networkName = document.getElementById('networkName').value.trim();
         const vrfName = document.getElementById('networkVrfName').value;
+        const attachGroup = document.getElementById('networkAttachGroup').value;
 
         if (!networkName) {
             throw new Error('Network name is required');
@@ -442,6 +452,10 @@ async function handleNetworkActionSubmit(event) {
 
         if (!vrfName) {
             throw new Error('VRF name is required');
+        }
+
+        if (!attachGroup) {
+            throw new Error('Network attach group is required');
         }
 
         // Disable submit button and show loading state
@@ -492,6 +506,7 @@ async function handleNetworkActionSubmit(event) {
                 gw_ip_address: gatewayIp,
                 vrf_name: vrfName,
                 vlan_name: `vlan_${networkName.toLowerCase()}`,
+                network_attach_group: attachGroup,
                 change_message: `Adding network ${networkName} via GUI`,
                 apply: false  // Don't auto-apply, let user review changeset
             })
@@ -547,6 +562,7 @@ async function handleNetworkActionSubmit(event) {
                         <li>Network ID (VNID): ${vlanData.vlan.vnid}</li>
                         <li>Gateway IP: ${gatewayIp}</li>
                         <li>VLAN Name: vlan_${networkName.toLowerCase()}</li>
+                        <li>Network Attach Group: ${attachGroup}</li>
                         <li><em>Status: Merged to NaC API (not applied to fabric yet)</em></li>
                     </ul>
                 </div>
@@ -945,11 +961,18 @@ async function addNetboxPrefixEntry() {
             return;
         }
 
-        // Get the first prefix ID (assuming one prefix per role)
-        const prefix = result.data.results[0];
-        const prefixId = prefix.id;
+        // Find the prefix that has a role.id matching the selected role
+        // The prefix.role object looks like: { "id": 5, "name": "nac-tf-fabric1", "slug": "nac-tf-fabric1", ... }
+        const prefix = result.data.results.find(p => p.role && p.role.id === roleData.id);
 
-        console.log(`Found prefix ID ${prefixId} for role ${roleData.name}`);
+        if (!prefix) {
+            showToast(`No prefix found with role "${roleData.name}" (ID: ${roleData.id}). Found ${result.data.results.length} prefix(es) but none match this role ID.`, 'error', 5000);
+            console.error('Available prefixes:', result.data.results);
+            return;
+        }
+
+        const prefixId = prefix.id;
+        console.log(`Found prefix ID ${prefixId} (${prefix.prefix}) for role ${roleData.name}`);
 
         // Add to array with both role_id and prefix_id
         netboxPrefixSettings.push({
@@ -1269,11 +1292,11 @@ async function clearAdminConfig() {
 
 
 /**
- * Test Nexus Dashboard connection
+ * Test saved Nexus Dashboard configuration (from config.yaml)
  */
-async function testNexusConnection() {
+async function testSavedNexusConfig() {
     const responseDiv = document.getElementById('nexusConnectionResponse');
-    const testBtn = document.getElementById('testNexusConnectionBtn');
+    const testBtn = document.getElementById('testSavedNexusConfigBtn');
 
     // Show loading state
     const originalText = testBtn.innerHTML;
@@ -1283,7 +1306,106 @@ async function testNexusConnection() {
     responseDiv.style.display = 'none';
 
     try {
-        const response = await fetch('/api/v1/nexus/test-connection');
+        // Send GET request to test saved configuration
+        const response = await fetch('/api/v1/nexus/test-connection', {
+            method: 'GET'
+        });
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            let fabricInfo = '';
+            if (result.fabrics_count !== undefined) {
+                fabricInfo += `<p class="mb-0 mt-1"><small>Found ${result.fabrics_count} fabric(s)</small></p>`;
+            }
+            if (result.configured_fabric) {
+                const fabricStatus = result.fabric_found
+                    ? '<i class="bi bi-check-circle-fill text-success"></i>'
+                    : '<i class="bi bi-x-circle-fill text-warning"></i>';
+                fabricInfo += `<p class="mb-0 mt-1"><small>${fabricStatus} Configured fabric: <strong>${result.configured_fabric}</strong></small></p>`;
+            }
+
+            responseDiv.innerHTML = `
+                <strong><i class="bi bi-check-circle me-2"></i>Connection Successful!</strong>
+                <p class="mb-0 mt-2">${result.message}</p>
+                ${fabricInfo}
+            `;
+
+            // Use warning class if fabric configured but not found
+            if (result.configured_fabric && !result.fabric_found) {
+                responseDiv.className = 'alert alert-warning mt-3';
+            } else {
+                responseDiv.className = 'alert alert-success mt-3';
+            }
+        } else {
+            responseDiv.innerHTML = `
+                <strong><i class="bi bi-x-circle me-2"></i>Connection Failed</strong>
+                <p class="mb-0 mt-2">${result.message}</p>
+            `;
+            responseDiv.className = 'alert alert-danger mt-3';
+        }
+
+        responseDiv.style.display = 'block';
+    } catch (error) {
+        console.error('Connection test error:', error);
+        responseDiv.innerHTML = `
+            <strong><i class="bi bi-x-circle me-2"></i>Connection Test Failed</strong>
+            <p class="mb-0 mt-2">Unable to connect to server: ${error.message}</p>
+        `;
+        responseDiv.className = 'alert alert-danger mt-3';
+        responseDiv.style.display = 'block';
+    } finally {
+        // Restore button state
+        testBtn.disabled = false;
+        testBtn.innerHTML = originalText;
+
+        // Smooth scroll to response
+        responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+
+/**
+ * Test new Nexus Dashboard configuration (from form values)
+ */
+async function testNewNexusConfig() {
+    const responseDiv = document.getElementById('nexusConnectionResponse');
+    const testBtn = document.getElementById('testNewNexusConfigBtn');
+
+    // Show loading state
+    const originalText = testBtn.innerHTML;
+    testBtn.disabled = true;
+    testBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Testing...';
+
+    responseDiv.style.display = 'none';
+
+    try {
+        // Get current form values
+        const formData = {
+            nexus_url: document.getElementById('nexusUrl').value.trim(),
+            nexus_username: document.getElementById('nexusUsername').value.trim(),
+            nexus_api_key: document.getElementById('nexusApiKey').value.trim(),
+            nexus_fabric_name: document.getElementById('nexusFabricName').value.trim()
+        };
+
+        // Validate required fields
+        if (!formData.nexus_url || !formData.nexus_username || !formData.nexus_api_key) {
+            responseDiv.innerHTML = `
+                <strong><i class="bi bi-exclamation-triangle me-2"></i>Validation Error</strong>
+                <p class="mb-0 mt-2">Please fill in URL, Username, and API Key fields before testing.</p>
+            `;
+            responseDiv.className = 'alert alert-warning mt-3';
+            responseDiv.style.display = 'block';
+            return;
+        }
+
+        // Send POST request with form data to test new configuration
+        const response = await fetch('/api/v1/nexus/test-connection', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
         const result = await response.json();
 
         if (result.status === 'success') {

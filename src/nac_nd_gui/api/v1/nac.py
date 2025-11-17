@@ -4,6 +4,9 @@ NaC API endpoints for UI
 from flask import Blueprint, jsonify, request
 from ...nac_api import get_nac_client
 import logging
+import yaml
+from pathlib import Path
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -234,6 +237,63 @@ def get_interfaces():
         }), 500
 
 
+@nac_bp.route('/network-attach-groups', methods=['GET'])
+def get_network_attach_groups():
+    """
+    Get Network Attach Groups from NaC API
+    ---
+    tags:
+      - NaC API
+    summary: Get Network Attach Groups
+    description: Gets all network attach groups from vxlan/overlay/network_attach_groups
+    responses:
+      200:
+        description: Network attach groups retrieved successfully
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: success
+            data:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "ATTACH_GROUP_1"
+      500:
+        description: Failed to retrieve network attach groups
+    """
+    try:
+        logger.info("Network Attach Groups endpoint called")
+        client = get_nac_client()
+
+        # Use the client's method to get network attach groups
+        attach_groups_list = client.get_network_attach_groups_full()
+
+        if attach_groups_list is not None:
+            logger.info(f"Returning {len(attach_groups_list)} network attach groups")
+            return jsonify({
+                'status': 'success',
+                'data': attach_groups_list
+            })
+        else:
+            logger.error("Failed to retrieve network attach groups from client")
+            return jsonify({
+                'status': 'error',
+                'message': 'Failed to retrieve network attach groups from NaC API'
+            }), 500
+
+    except Exception as e:
+        logger.error(f"Error in network attach groups endpoint: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to retrieve network attach groups: {str(e)}'
+        }), 500
+
+
 @nac_bp.route('/vrfs/merge', methods=['POST'])
 def merge_vrf():
     """
@@ -378,15 +438,59 @@ def merge_vrf():
         }), 500
 
 
+def load_network_template(template_vars: dict) -> dict:
+    """
+    Load network template from YAML file and replace template variables.
+
+    Args:
+        template_vars: Dictionary containing variable names and their values
+                      e.g., {'name': 'NET_PROD', 'vrf_name': 'VRF_PROD', ...}
+
+    Returns:
+        Dictionary with template variables replaced and defaults preserved
+    """
+    try:
+        # Get the path to the YAML template file
+        template_path = Path(__file__).parent.parent.parent.parent.parent/ 'yaml' / 'nac-network.yaml'
+
+        if not template_path.exists():
+            logger.error(f"Network template file not found: {template_path}")
+            return None
+
+        # Read the YAML template as text
+        with open(template_path, 'r') as f:
+            template_content = f.read()
+
+        # Replace template variables using regex
+        # Pattern matches {{ variable_name }} and replaces with actual values
+        for var_name, var_value in template_vars.items():
+            pattern = r'\{\{\s*' + re.escape(var_name) + r'\s*\}\}'
+            template_content = re.sub(pattern, str(var_value), template_content)
+
+        # Parse the resulting YAML into a dictionary
+        network_data = yaml.safe_load(template_content)
+
+        logger.info(f"Network template loaded with variables: {list(template_vars.keys())}")
+        return network_data
+
+    except Exception as e:
+        logger.error(f"Error loading network template: {str(e)}", exc_info=True)
+        return None
+
+
 @nac_bp.route('/networks/merge', methods=['POST'])
 def merge_network():
     """
-    Merge a new Network in NaC API
+    Merge a new Network in NaC API using YAML template
     ---
     tags:
       - NaC API
     summary: Merge Network
-    description: Merges a new network into the NaC API data model using merge operation
+    description: |
+      Merges a new network into the NaC API data model using merge operation.
+      Uses a YAML template (yaml/nac-network.yaml) with default values.
+      Template variables are replaced with provided values, while non-template
+      fields maintain their default values from the template.
     parameters:
       - in: body
         name: body
@@ -398,6 +502,9 @@ def merge_network():
             - vrf_name
             - net_id
             - vlan_id
+            - vlan_name
+            - gw_ip_address
+            - network_attach_group
           properties:
             name:
               type: string
@@ -409,7 +516,7 @@ def merge_network():
               example: "VRF_PROD"
             net_id:
               type: integer
-              description: Network ID
+              description: Network ID (VNID)
               example: 30001
             vlan_id:
               type: integer
@@ -417,20 +524,16 @@ def merge_network():
               example: 101
             vlan_name:
               type: string
-              description: VLAN name (optional)
-              example: "VLAN_WEB"
+              description: VLAN name
+              example: "vlan_net_prod_web"
             gw_ip_address:
               type: string
-              description: Gateway IP address in CIDR notation (optional)
+              description: Gateway IP address in CIDR notation
               example: "10.1.1.1/24"
-            gw_ipv6_address:
+            network_attach_group:
               type: string
-              description: Gateway IPv6 address (optional)
-              example: "2001:db8::1/64"
-            secondary_ip_address:
-              type: string
-              description: Secondary IP address (optional)
-              example: "10.1.1.2/24"
+              description: Network attach group name (from NaC API attach groups)
+              example: "ATTACH_GROUP_1"
             change_message:
               type: string
               description: Optional change message for the merge operation
@@ -458,9 +561,9 @@ def merge_network():
             data:
               type: object
       400:
-        description: Invalid request data
+        description: Invalid request data or missing required fields
       500:
-        description: Failed to merge network
+        description: Failed to merge network or load template
     """
     try:
         logger.info("Merge Network endpoint called")
@@ -474,8 +577,8 @@ def merge_network():
                 'message': 'No data provided'
             }), 400
 
-        # Validate required fields
-        required_fields = ['name', 'vrf_name', 'net_id', 'vlan_id']
+        # Validate required fields (matching template variables)
+        required_fields = ['name', 'vrf_name', 'net_id', 'vlan_id', 'vlan_name', 'gw_ip_address', 'network_attach_group']
         missing_fields = [field for field in required_fields if field not in data]
 
         if missing_fields:
@@ -487,28 +590,28 @@ def merge_network():
         # Get NaC client
         client = get_nac_client()
 
-        # Create Network data with required fields
-        network_data = {
+        # Prepare template variables mapping
+        # Map incoming data fields to template variable names
+        template_vars = {
             'name': data['name'],
             'vrf_name': data['vrf_name'],
-            'net_id': data['net_id'],
-            'vlan_id': data['vlan_id']
+            'vnid': data['net_id'],                    # Template uses 'vnid', API uses 'net_id'
+            'vlan_id': data['vlan_id'],
+            'vlan_name': data['vlan_name'],
+            'vlan_gateway_ip': data['gw_ip_address'],  # Template uses 'vlan_gateway_ip', API uses 'gw_ip_address'
+            'network_attach_group': data['network_attach_group']
         }
 
-        # Add optional fields if provided
-        if 'vlan_name' in data and data['vlan_name']:
-            network_data['vlan_name'] = data['vlan_name']
+        # Load network template with variable substitution
+        network_data = load_network_template(template_vars)
 
-        if 'gw_ip_address' in data and data['gw_ip_address']:
-            network_data['gw_ip_address'] = data['gw_ip_address']
+        if not network_data:
+            return jsonify({
+                'status': 'error',
+                'message': 'Failed to load network template'
+            }), 500
 
-        if 'gw_ipv6_address' in data and data['gw_ipv6_address']:
-            network_data['gw_ipv6_address'] = data['gw_ipv6_address']
-
-        if 'secondary_ip_address' in data and data['secondary_ip_address']:
-            network_data['secondary_ip_address'] = data['secondary_ip_address']
-
-        logger.info(f"Merging Network: {network_data}")
+        logger.info(f"Merging Network with template: {network_data}")
 
         # Call NaC API merge operation using the client's merge_operation method
         response = client.merge_operation(

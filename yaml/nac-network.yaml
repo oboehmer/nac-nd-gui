@@ -1,0 +1,13 @@
+name: {{ name }}
+is_l2_only: false
+vrf_name: {{ vrf_name }}
+net_id: {{ vnid }}
+vlan_id: {{ vlan_id }}
+vlan_name: {{ vlan_name }}
+gw_ip_address: {{ vlan_gateway_ip }}
+arp_supress: false
+int_desc: NaC Interface (Automated)
+mtu_l3intf: 9216
+netflow_enable: false
+trm_enable: false
+network_attach_group: {{ network_attach_group }}

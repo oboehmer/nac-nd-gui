@@ -32,6 +32,10 @@ def get_prefixes():
         in: query
         type: integer
         description: Filter by IP family (4 for IPv4, 6 for IPv6)
+      - name: role
+        in: query
+        type: string
+        description: Filter by role slug (e.g., 'nac-tf-fabric1')
       - name: q
         in: query
         type: string
@@ -66,6 +70,8 @@ def get_prefixes():
             params['status'] = request.args.get('status')
         if request.args.get('family'):
             params['family'] = request.args.get('family')
+        if request.args.get('role'):
+            params['role'] = request.args.get('role')
         if request.args.get('q'):
             params['q'] = request.args.get('q')
 

@@ -986,6 +986,42 @@ async function loadVrfDropdown() {
 
 
 /**
+ * Load Network Attach Groups into dropdown for action-networks page
+ */
+async function loadAttachGroupsDropdown() {
+    const attachGroupSelect = document.getElementById('networkAttachGroup');
+    if (!attachGroupSelect) {
+        console.error('Network Attach Group select element not found');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/v1/nac/network-attach-groups');
+        const result = await response.json();
+
+        if (result.status === 'success' && result.data) {
+            // Clear existing options except the first one
+            attachGroupSelect.innerHTML = '<option value="">Select an Attach Group</option>';
+
+            // Add attach group options
+            result.data.forEach(group => {
+                const option = document.createElement('option');
+                option.value = group.name;
+                option.textContent = group.name;
+                attachGroupSelect.appendChild(option);
+            });
+
+            console.log(`Loaded ${result.data.length} Network Attach Groups into dropdown`);
+        } else {
+            console.error('Failed to load Network Attach Groups:', result.message);
+        }
+    } catch (error) {
+        console.error('Error loading Network Attach Groups:', error);
+    }
+}
+
+
+/**
  * Event delegation for NaC YAML modal buttons
  * This must be called after DOM is loaded
  */

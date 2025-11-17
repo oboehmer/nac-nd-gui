@@ -6,6 +6,7 @@ import os
 import yaml
 import requests
 from ...nac_api import get_nac_client, reset_nac_client
+from ...nexus_dashboard import reset_nexus_client
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -94,6 +95,22 @@ def save_admin_config():
     try:
         data = request.get_json()
 
+        # Validate Nexus Dashboard credentials contain only ASCII/Latin-1 characters
+        # Strip whitespace to remove any hidden characters
+        nexus_username = data.get('nexus_username', '').strip()
+        nexus_api_key = data.get('nexus_api_key', '').strip()
+
+        try:
+            if nexus_username:
+                nexus_username.encode('latin-1')
+            if nexus_api_key:
+                nexus_api_key.encode('latin-1')
+        except UnicodeEncodeError:
+            return jsonify({
+                'status': 'error',
+                'message': 'Nexus Dashboard username and API key must contain only ASCII/Latin-1 characters. Please remove any special Unicode characters, emojis, or non-ASCII symbols.'
+            }), 400
+
         # Create yaml directory if it doesn't exist
         # Navigate from src/nac_nd_gui/api/v1/ up to project root, then to yaml/
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
@@ -103,7 +120,7 @@ def save_admin_config():
         # Configuration file path
         config_path = os.path.join(yaml_dir, 'config.yaml')
 
-        # Configuration data
+        # Configuration data (use validated/stripped credentials)
         config_data = {
             'nac': {
                 'api_url': data.get('nac_api_url', ''),
@@ -114,9 +131,9 @@ def save_admin_config():
                 'data_sources_dir': data.get('data_sources_dir', '')
             },
             'nexus_dashboard': {
-                'api_key': data.get('nexus_api_key', ''),
+                'api_key': nexus_api_key,
                 'url': data.get('nexus_url', ''),
-                'username': data.get('nexus_username', ''),
+                'username': nexus_username,
                 'fabric_name': data.get('nexus_fabric_name', '')
             },
             'netbox': {
@@ -132,8 +149,9 @@ def save_admin_config():
         with open(config_path, 'w') as f:
             yaml.dump(config_data, f, default_flow_style=False, sort_keys=False)
 
-        # Reset NAC client singleton to force reload of new configuration
+        # Reset client singletons to force reload of new configuration
         reset_nac_client()
+        reset_nexus_client()
 
         return jsonify({
             'status': 'success',

@@ -1,13 +1,13 @@
 """
 Nexus Dashboard API endpoints
 """
-from flask import Blueprint, jsonify
-from ...nexus_dashboard import get_nexus_client
+from flask import Blueprint, jsonify, request
+from ...nexus_dashboard import get_nexus_client, NexusDashboardClient
 
 nexus_bp = Blueprint('nexus', __name__)
 
 
-@nexus_bp.route('/test-connection', methods=['GET'])
+@nexus_bp.route('/test-connection', methods=['GET', 'POST'])
 def test_nexus_connection():
     """
     Test connection to Nexus Dashboard
@@ -15,7 +15,30 @@ def test_nexus_connection():
     tags:
       - Nexus Dashboard
     summary: Test Nexus Dashboard connectivity
-    description: Tests the connection to Nexus Dashboard using configured credentials and verifies fabric existence
+    description: Tests the connection to Nexus Dashboard using configured credentials or provided parameters and verifies fabric existence
+    parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          type: object
+          properties:
+            nexus_url:
+              type: string
+              description: Nexus Dashboard URL
+              example: "https://10.15.0.122"
+            nexus_username:
+              type: string
+              description: Nexus Dashboard username
+              example: "admin"
+            nexus_api_key:
+              type: string
+              description: Nexus Dashboard API key
+              example: "your-api-key"
+            nexus_fabric_name:
+              type: string
+              description: Fabric name to verify
+              example: "nac-tf-fabric1"
     responses:
       200:
         description: Connection test result
@@ -51,13 +74,102 @@ def test_nexus_connection():
               example: "Connection test failed: Connection timeout"
     """
     try:
-        client = get_nexus_client()
+        # Check if configuration parameters are provided in request body
+        if request.method == 'POST' and request.is_json:
+            data = request.get_json()
+
+            # Validate that credentials contain only ASCII/Latin-1 characters
+            # Strip whitespace to remove any hidden characters
+            username = data.get('nexus_username', '').strip()
+            api_key = data.get('nexus_api_key', '').strip()
+
+            try:
+                if username:
+                    username.encode('latin-1')
+                if api_key:
+                    api_key.encode('latin-1')
+            except UnicodeEncodeError:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Username and API key must contain only ASCII/Latin-1 characters. Please remove any special Unicode characters, emojis, or non-ASCII symbols.'
+                }), 400
+
+            # Create a temporary client with provided parameters
+            client = NexusDashboardClient(
+                base_url=data.get('nexus_url'),
+                username=username,
+                api_key=api_key,
+                fabric_name=data.get('nexus_fabric_name')
+            )
+        else:
+            # Use the singleton client with saved configuration
+            client = get_nexus_client()
+
         result = client.test_connection()
         return jsonify(result)
+    except ValueError as e:
+        # Handle validation errors (e.g., invalid characters in credentials)
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 400
     except Exception as e:
         return jsonify({
             'status': 'error',
             'message': f'Connection test failed: {str(e)}'
+        }), 500
+
+
+@nexus_bp.route('/config-status', methods=['GET'])
+def get_nexus_config_status():
+    """
+    Get current Nexus Dashboard configuration status (for diagnostics)
+    ---
+    tags:
+      - Nexus Dashboard
+    summary: Get configuration status
+    description: Returns the current configuration state loaded by the singleton client (sensitive data masked)
+    responses:
+      200:
+        description: Configuration status
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: success
+            configured:
+              type: boolean
+              example: true
+            base_url:
+              type: string
+              example: "https://10.15.0.122"
+            username:
+              type: string
+              example: "admin"
+            api_key_set:
+              type: boolean
+              example: true
+            fabric_name:
+              type: string
+              example: "nac-tf-fabric1"
+    """
+    try:
+        client = get_nexus_client()
+
+        return jsonify({
+            'status': 'success',
+            'configured': all([client.base_url, client.username, client.api_key]),
+            'base_url': client.base_url or '',
+            'username': client.username or '',
+            'api_key_set': bool(client.api_key),
+            'api_key_preview': client.api_key[:10] + '...' if client.api_key else '',
+            'fabric_name': client.fabric_name or ''
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to get config status: {str(e)}'
         }), 500
 
 
