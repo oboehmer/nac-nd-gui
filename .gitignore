@@ -38,6 +38,7 @@ instance/
 
 # Configuration files
 yaml/config.yaml
+yaml/auth.yaml
 
 # IDE
 .vscode/
