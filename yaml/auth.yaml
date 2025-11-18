@@ -1,0 +1,68 @@
+# Authentication Configuration for NaC ND GUI
+# This is the active configuration file. Modify as needed.
+
+# Authentication settings
+auth:
+  # Enable/disable authentication (true/false)
+  enabled: true
+
+  # Session timeout in minutes (0 = no timeout)
+  session_timeout: 60
+
+  # Password requirements
+  password_requirements:
+    min_length: 8
+    require_uppercase: true
+    require_lowercase: true
+    require_numbers: true
+    require_special_chars: false
+
+# Users configuration
+users:
+  # Default admin user - CHANGE PASSWORD BEFORE PRODUCTION USE
+  admin:
+    password: "cisco.123cisco.123"
+    role: "admin"
+    full_name: "Administrator"
+    email: "admin@example.com"
+    enabled: true
+
+# Role definitions
+roles:
+  admin:
+    description: "Full system access"
+    permissions:
+      - "read"
+      - "write"
+      - "admin"
+      - "configure"
+      - "user_management"
+
+  operator:
+    description: "Network operations access"
+    permissions:
+      - "read"
+      - "write"
+      - "configure"
+
+  readonly:
+    description: "Read-only access"
+    permissions:
+      - "read"
+
+# Security settings
+security:
+  # Number of failed login attempts before account lockout
+  max_login_attempts: 5
+
+  # Account lockout duration in minutes
+  lockout_duration: 15
+
+  # Enable/disable account lockout
+  enable_lockout: true
+
+  # Password hashing algorithm (bcrypt, pbkdf2, argon2)
+  password_hash_method: "bcrypt"
+
+  # Log authentication events
+  log_auth_events: true

@@ -7,11 +7,13 @@ import yaml
 import requests
 from ...nac_api import get_nac_client, reset_nac_client
 from ...nexus_dashboard import reset_nexus_client
+from ...auth import require_permission
 
 admin_bp = Blueprint('admin', __name__)
 
 
 @admin_bp.route('/save-config', methods=['POST'])
+@require_permission('admin')
 def save_admin_config():
     """
     Save API configuration to YAML file
@@ -166,6 +168,7 @@ def save_admin_config():
 
 
 @admin_bp.route('/load-config', methods=['GET'])
+@require_permission('admin')
 def load_admin_config():
     """Load current API configuration from YAML file"""
     try:
@@ -230,6 +233,7 @@ def load_admin_config():
 
 
 @admin_bp.route('/clear-config', methods=['POST'])
+@require_permission('admin')
 def clear_admin_config():
     """Clear API configuration from YAML file"""
     try:
@@ -256,6 +260,7 @@ def clear_admin_config():
 
 
 @admin_bp.route('/test-nac-api-connection', methods=['GET'])
+@require_permission('admin')
 def test_nac_api_connection():
     """
     Test connection to NaC API (SCM)
@@ -312,4 +317,446 @@ def test_nac_api_connection():
         return jsonify({
             'status': 'error',
             'message': f'Connection test failed: {str(e)}'
+        }), 500
+
+
+# User Management Endpoints
+
+@admin_bp.route('/users', methods=['GET'])
+@require_permission('admin')
+def list_users():
+    """
+    List all users
+    ---
+    tags:
+      - Admin
+    responses:
+      200:
+        description: User list retrieved successfully
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            users:
+              type: array
+              items:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    example: "admin"
+                  role:
+                    type: string
+                    example: "admin"
+                  full_name:
+                    type: string
+                    example: "Administrator"
+                  email:
+                    type: string
+                    example: "admin@example.com"
+                  enabled:
+                    type: boolean
+                    example: true
+    """
+    try:
+        from ...auth import load_auth_config
+        auth_config = load_auth_config()
+
+        if not auth_config:
+            return jsonify({
+                'success': False,
+                'message': 'Authentication configuration not found'
+            }), 404
+
+        users_data = auth_config.get('users', {})
+        users_list = []
+
+        for username, user_info in users_data.items():
+            users_list.append({
+                'username': username,
+                'role': user_info.get('role', 'readonly'),
+                'full_name': user_info.get('full_name', username),
+                'email': user_info.get('email', ''),
+                'enabled': user_info.get('enabled', True)
+            })
+
+        return jsonify({
+            'success': True,
+            'users': users_list
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Failed to load users: {str(e)}'
+        }), 500
+
+
+@admin_bp.route('/users', methods=['POST'])
+@require_permission('admin')
+def create_user():
+    """
+    Create a new user
+    ---
+    tags:
+      - Admin
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+              description: Username (must be unique)
+              example: "newuser"
+            password:
+              type: string
+              description: Password
+              example: "SecurePass123!"
+            role:
+              type: string
+              description: User role
+              example: "operator"
+            full_name:
+              type: string
+              description: Full name
+              example: "New User"
+            email:
+              type: string
+              description: Email address
+              example: "newuser@example.com"
+            enabled:
+              type: boolean
+              description: Whether user is enabled
+              example: true
+    responses:
+      201:
+        description: User created successfully
+      400:
+        description: Invalid input or user already exists
+      500:
+        description: Server error
+    """
+    try:
+        data = request.get_json()
+
+        # Validate required fields
+        required_fields = ['username', 'password', 'role']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({
+                    'success': False,
+                    'message': f'Missing required field: {field}'
+                }), 400
+
+        username = data['username'].strip()
+        password = data['password']
+        role = data['role']
+        full_name = data.get('full_name', username)
+        email = data.get('email', '')
+        enabled = data.get('enabled', True)
+
+        # Load current auth config
+        auth_config_path = os.path.join('yaml', 'auth.yaml')
+
+        if os.path.exists(auth_config_path):
+            with open(auth_config_path, 'r') as file:
+                auth_config = yaml.safe_load(file) or {}
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Authentication configuration file not found'
+            }), 404
+
+        # Check if user already exists
+        users = auth_config.get('users', {})
+        if username in users:
+            return jsonify({
+                'success': False,
+                'message': f'User {username} already exists'
+            }), 400
+
+        # Validate role exists
+        roles = auth_config.get('roles', {})
+        if role not in roles:
+            return jsonify({
+                'success': False,
+                'message': f'Role {role} does not exist'
+            }), 400
+
+        # Add new user
+        users[username] = {
+            'password': password,  # Note: In production, this should be hashed
+            'role': role,
+            'full_name': full_name,
+            'email': email,
+            'enabled': enabled
+        }
+
+        auth_config['users'] = users
+
+        # Save updated config
+        with open(auth_config_path, 'w') as file:
+            yaml.dump(auth_config, file, default_flow_style=False, indent=2)
+
+        return jsonify({
+            'success': True,
+            'message': f'User {username} created successfully'
+        }), 201
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Failed to create user: {str(e)}'
+        }), 500
+
+
+@admin_bp.route('/users/<username>', methods=['PUT'])
+@require_permission('admin')
+def update_user(username):
+    """
+    Update an existing user
+    ---
+    tags:
+      - Admin
+    parameters:
+      - in: path
+        name: username
+        type: string
+        required: true
+        description: Username to update
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            password:
+              type: string
+              description: New password (optional)
+            role:
+              type: string
+              description: User role
+            full_name:
+              type: string
+              description: Full name
+            email:
+              type: string
+              description: Email address
+            enabled:
+              type: boolean
+              description: Whether user is enabled
+    responses:
+      200:
+        description: User updated successfully
+      404:
+        description: User not found
+      500:
+        description: Server error
+    """
+    try:
+        data = request.get_json()
+
+        # Load current auth config
+        auth_config_path = os.path.join('yaml', 'auth.yaml')
+
+        if not os.path.exists(auth_config_path):
+            return jsonify({
+                'success': False,
+                'message': 'Authentication configuration file not found'
+            }), 404
+
+        with open(auth_config_path, 'r') as file:
+            auth_config = yaml.safe_load(file) or {}
+
+        # Check if user exists
+        users = auth_config.get('users', {})
+        if username not in users:
+            return jsonify({
+                'success': False,
+                'message': f'User {username} not found'
+            }), 404
+
+        # Update user fields
+        user_info = users[username]
+
+        if 'password' in data and data['password']:
+            user_info['password'] = data['password']
+
+        if 'role' in data:
+            # Validate role exists
+            roles = auth_config.get('roles', {})
+            if data['role'] not in roles:
+                return jsonify({
+                    'success': False,
+                    'message': f'Role {data["role"]} does not exist'
+                }), 400
+            user_info['role'] = data['role']
+
+        if 'full_name' in data:
+            user_info['full_name'] = data['full_name']
+
+        if 'email' in data:
+            user_info['email'] = data['email']
+
+        if 'enabled' in data:
+            user_info['enabled'] = data['enabled']
+
+        # Save updated config
+        with open(auth_config_path, 'w') as file:
+            yaml.dump(auth_config, file, default_flow_style=False, indent=2)
+
+        return jsonify({
+            'success': True,
+            'message': f'User {username} updated successfully'
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Failed to update user: {str(e)}'
+        }), 500
+
+
+@admin_bp.route('/users/<username>', methods=['DELETE'])
+@require_permission('admin')
+def delete_user(username):
+    """
+    Delete a user
+    ---
+    tags:
+      - Admin
+    parameters:
+      - in: path
+        name: username
+        type: string
+        required: true
+        description: Username to delete
+    responses:
+      200:
+        description: User deleted successfully
+      400:
+        description: Cannot delete user (e.g., last admin)
+      404:
+        description: User not found
+      500:
+        description: Server error
+    """
+    try:
+        # Load current auth config
+        auth_config_path = os.path.join('yaml', 'auth.yaml')
+
+        if not os.path.exists(auth_config_path):
+            return jsonify({
+                'success': False,
+                'message': 'Authentication configuration file not found'
+            }), 404
+
+        with open(auth_config_path, 'r') as file:
+            auth_config = yaml.safe_load(file) or {}
+
+        # Check if user exists
+        users = auth_config.get('users', {})
+        if username not in users:
+            return jsonify({
+                'success': False,
+                'message': f'User {username} not found'
+            }), 404
+
+        # Check if this is the last admin user
+        admin_count = sum(1 for user_info in users.values()
+                         if user_info.get('role') == 'admin' and user_info.get('enabled', True))
+
+        if users[username].get('role') == 'admin' and admin_count <= 1:
+            return jsonify({
+                'success': False,
+                'message': 'Cannot delete the last admin user'
+            }), 400
+
+        # Delete user
+        del users[username]
+
+        # Save updated config
+        with open(auth_config_path, 'w') as file:
+            yaml.dump(auth_config, file, default_flow_style=False, indent=2)
+
+        return jsonify({
+            'success': True,
+            'message': f'User {username} deleted successfully'
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Failed to delete user: {str(e)}'
+        }), 500
+
+
+@admin_bp.route('/roles', methods=['GET'])
+@require_permission('admin')
+def list_roles():
+    """
+    List all available roles
+    ---
+    tags:
+      - Admin
+    responses:
+      200:
+        description: Role list retrieved successfully
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            roles:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "admin"
+                  description:
+                    type: string
+                    example: "Full system access"
+                  permissions:
+                    type: array
+                    items:
+                      type: string
+                    example: ["read", "write", "admin"]
+    """
+    try:
+        from ...auth import load_auth_config
+        auth_config = load_auth_config()
+
+        if not auth_config:
+            return jsonify({
+                'success': False,
+                'message': 'Authentication configuration not found'
+            }), 404
+
+        roles_data = auth_config.get('roles', {})
+        roles_list = []
+
+        for role_name, role_info in roles_data.items():
+            roles_list.append({
+                'name': role_name,
+                'description': role_info.get('description', ''),
+                'permissions': role_info.get('permissions', [])
+            })
+
+        return jsonify({
+            'success': True,
+            'roles': roles_list
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Failed to load roles: {str(e)}'
         }), 500

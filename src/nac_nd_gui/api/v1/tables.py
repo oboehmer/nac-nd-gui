@@ -2,11 +2,13 @@
 Table data API endpoints for UI
 """
 from flask import Blueprint, jsonify
+from ...auth import require_permission
 
 tables_bp = Blueprint('tables', __name__)
 
 
 @tables_bp.route('/recent-activity', methods=['GET'])
+@require_permission('read')
 def api_recent_activity():
     """Get recent activity data for Tabulator"""
     data = [
@@ -35,6 +37,7 @@ def api_recent_activity():
 
 
 @tables_bp.route('/fabrics', methods=['GET'])
+@require_permission('read')
 def api_fabrics():
     """Get fabric list data for Tabulator"""
     data = [
@@ -51,6 +54,7 @@ def api_fabrics():
 
 
 @tables_bp.route('/vrfs', methods=['GET'])
+@require_permission('read')
 def api_vrfs():
     """Get VRF instances data for Tabulator"""
     data = [
@@ -71,6 +75,7 @@ def api_vrfs():
 
 
 @tables_bp.route('/interfaces', methods=['GET'])
+@require_permission('read')
 def api_interfaces():
     """Get interface list data for Tabulator"""
     data = [

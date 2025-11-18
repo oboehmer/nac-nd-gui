@@ -3,11 +3,15 @@ from dotenv import load_dotenv
 import os
 from flasgger import Swagger
 from .api.v1 import register_v1_blueprints
+from .auth import AuthManager, optional_auth
 
 load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
+
+# Initialize authentication system
+auth_manager = AuthManager(app)
 
 # Swagger configuration
 swagger_config = {
@@ -53,6 +57,10 @@ swagger_template = {
             "description": "Administrative configuration endpoints"
         },
         {
+            "name": "Authentication",
+            "description": "User authentication and session management"
+        },
+        {
             "name": "Nexus Dashboard",
             "description": "Nexus Dashboard integration endpoints"
         },
@@ -74,9 +82,12 @@ register_v1_blueprints(app)
 
 
 @app.route('/')
-def index():
+@optional_auth
+def index(**kwargs):
     """Render the main page"""
-    return render_template('index.html')
+    return render_template('index.html',
+                         auth_enabled=kwargs.get('auth_enabled', False),
+                         user_authenticated=kwargs.get('user_authenticated', False))
 
 
 @app.errorhandler(404)
