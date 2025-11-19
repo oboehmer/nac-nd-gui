@@ -5,7 +5,7 @@ net_id: {{ vnid }}
 vlan_id: {{ vlan_id }}
 vlan_name: {{ vlan_name }}
 gw_ip_address: {{ vlan_gateway_ip }}
-arp_supress: false
+arp_suppress: false
 int_desc: NaC Interface (Automated)
 mtu_l3intf: 9216
 netflow_enable: false
