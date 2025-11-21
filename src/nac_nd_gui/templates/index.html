@@ -19,6 +19,25 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Theme Initialization (prevent flash) -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'auto';
+            let actualTheme;
+
+            if (savedTheme === 'auto') {
+                // Use system preference
+                actualTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            } else {
+                actualTheme = savedTheme;
+            }
+
+            if (actualTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
 </head>
 <body>
     <div class="wrapper">
@@ -233,11 +252,16 @@
                     <button class="btn btn-primary" id="sidebarToggle" type="button">
                         <i class="bi bi-list"></i>
                     </button>
+                    <div class="ms-auto">
+                        <button class="btn" id="themeToggle" type="button" title="Theme: Auto (click for Light)">
+                            <i class="bi bi-circle-half" id="themeIcon"></i>
+                        </button>
+                    </div>
                 </div>
             </nav>
 
             <!-- Main Content -->
-            <div class="container-fluid mt-4">
+            <div class="container mt-4">
                 <!-- Main Landing Page -->
                 <div id="page-main" class="page-content active">
                     <!-- NaC Logo Header -->
@@ -255,25 +279,49 @@
                     <div class="row">
                         <div class="col-lg-12">
                             <p>
-                                The intent of this tool is to demonstrate what is possible by using NaC-API. NaC API is a north bound
-                                API gateway to Source Code Managers. This allows you to interact with a source code repository (GIT)
-                                via API instead of human direct interaction.
-                            </p><p>
-                                This provides the ability to have automated workflows utilize Network as Code (NaC) to push configuration
-                                changes into your network with all the embeded benefits of validation that Network as Code provides. While
-                                providing different options on how to interface with NaC.
-                            </p><p>
-                                Operators that struggle with learning data structures (in this case YAML) could potentially use a tool
-                                similar to this to create workflows that take advantage of Network as Code to push configuration
-                                changes into their network with all the embeded benefits of validation that Network as Code provides.
-                                </p><p>
-                                NaC-API provides
-                                means to create a simple front-end towards the data structure used by Network as Code. NaC API interacts
-                                with underlying Source Code Managers (SCM) to retrieve and update the data model. NaC API supports
-                                Github, Gitlab, Bitbucket and even local file system representation of the model.
+                                The intent of this tool is to demonstrate what is possible with NaC-API. NaC API is a north bound
+                                API gateway to Source Code Managers.  The goal of NaC-API is to provide a simple RESTful and GraphQL API interface
+                                to interact with Network as Code data models stored in Source Code Managers (SCM) such as GitHub and GitLab. 
+                                This allows for easy integration with ITSM systems or other automation tools ( or self developed portals ). 
+                            </p>
+                        </div>
+                    <!-- API Integration Sources Visualization -->
+                    <div class="row mt-5">
+                        <div class="col-lg-12">
+                            <div class="text-center">
+                                <img id="apiSourcesSvg"
+                                     src="{{ url_for('static', filename='images/api-sources.svg') }}"
+                                     alt="API Integration Sources"
+                                     class="img-fluid"
+                                     style="max-width: 800px; width: 100%;">
+                            </div>
+                        </div>
+                    </div>
+                        <div class="col-lg-12">
+                            <p>
+                                By providing this capability, NaC-API enables organizations to front-end the infrastructure as 
+                                code models with custom applications or ITSM for simplification of network operations. Yet by 
+                                leveraging NaC-API, you still retain the <strong>full power of pre-change and post-change validation</strong> 
+                                when performing network changes. In addition, the SCM remains the source of truth for all network
+                                with powerful version control capabilities.
                             </p>
                         </div>
                     </div>
+
+                    <!-- DevOps Pipeline Visualization -->
+                    <div class="row mt-5">
+                        <div class="col-lg-12">
+                            <div class="text-center">
+                                <img id="pipelineSvg"
+                                     src="{{ url_for('static', filename='images/devops-pipeline.svg') }}"
+                                     alt="DevOps Pipeline"
+                                     class="img-fluid"
+                                     style="max-width: 1200px; width: 100%;">
+                            </div>
+                        </div>
+                    </div>
+
+
 
                 </div>
 
@@ -297,9 +345,8 @@
                     </div>
 
                     <div class="card shadow-sm mb-4">
-                        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                        <div class="card-header bg-info text-white">
                             <h5 class="mb-0">VRF Instances</h5>
-                            <button class="btn btn-light btn-sm"><i class="bi bi-plus-circle me-1"></i>Add VRF</button>
                         </div>
                         <div class="card-body">
                             <div id="vrfInstancesTable"></div>
@@ -315,9 +362,8 @@
                     </div>
 
                     <div class="card shadow-sm mb-4">
-                        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <div class="card-header bg-success text-white">
                             <h5 class="mb-0">Network Instances</h5>
-                            <button class="btn btn-light btn-sm"><i class="bi bi-plus-circle me-1"></i>Add Network</button>
                         </div>
                         <div class="card-body">
                             <div id="networksTable"></div>
@@ -333,9 +379,8 @@
                     </div>
 
                     <div class="card shadow-sm mb-4">
-                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <div class="card-header bg-primary text-white">
                             <h5 class="mb-0">Switch Inventory</h5>
-                            <button class="btn btn-light btn-sm"><i class="bi bi-plus-circle me-1"></i>Add Switch</button>
                         </div>
                         <div class="card-body">
                             <div id="switchesTable"></div>
@@ -351,9 +396,8 @@
                     </div>
 
                     <div class="card shadow-sm mb-4">
-                        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                        <div class="card-header bg-warning text-dark">
                             <h5 class="mb-0">Interface Inventory</h5>
-                            <button class="btn btn-light btn-sm"><i class="bi bi-plus-circle me-1"></i>Add Interface</button>
                         </div>
                         <div class="card-body">
                             <div id="interfacesTable"></div>
@@ -432,7 +476,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-lg-10 mx-auto">
+                        <div class="col-lg-12 mx-auto">
                             <form id="podInitForm">
                                 <!-- POD Configuration -->
                                 <div class="card shadow-sm mb-4">
@@ -519,7 +563,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-lg-10 mx-auto">
+                        <div class="col-lg-12 mx-auto">
                             <form id="vrfActionForm">
                                 <!-- VRF Configuration -->
                                 <div class="card shadow-sm mb-4">
@@ -596,7 +640,7 @@
 
                     <!-- Current VRFs Table -->
                     <div class="row">
-                        <div class="col-lg-10 mx-auto">
+                        <div class="col-lg-12 mx-auto">
                             <div class="card shadow-sm mb-4">
                                 <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
                                     <h5 class="mb-0">Current VRF Instances</h5>
@@ -617,8 +661,42 @@
                         <p class="text-muted">Create and manage network configurations</p>
                     </div>
 
+                    <!-- NaC-API with NetBox Integration -->
+                    <div class="row mb-4">
+                        <div class="col-lg-12 mx-auto">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <h4 class="card-title mb-3"><i class="bi bi-diagram-3 text-primary me-2"></i>Create Networks</h4>
+
+                                    <p class="mb-3">
+                                        The Network as Code API (NaC-API) provides seamless integration with NetBox IPAM to automate network provisioning workflows.
+                                        When triggered through the Actions Network interface, NaC-API connects directly to the NetBox API to retrieve essential network data including
+                                        VLANs and IP prefixes. This automated data retrieval eliminates manual configuration errors and ensures consistency between your IPAM system
+                                        and network infrastructure deployments.
+                                    </p>
+
+                                    <p class="mb-4">
+                                        Once the data is retrieved from NetBox, NaC-API processes and transforms the VLAN and prefix information into a standardized network schema format.
+                                        This generated YAML schema is then automatically committed to your configured Source Code Management (SCM) repository via a merge request,
+                                        enabling full GitOps workflow capabilities. This integration streamlines the network provisioning process by bridging IPAM data with
+                                        infrastructure-as-code practices, providing complete audit trails and version control for all network configuration changes.
+                                    </p>
+
+                                    <!-- Actions Network Diagram -->
+                                    <div class="text-center">
+                                        <img id="actionsNetworkSvg"
+                                             src="{{ url_for('static', filename='images/actions-network.svg') }}"
+                                             alt="Actions Network - NetBox Integration Workflow"
+                                             class="img-fluid"
+                                             style="max-width: 1200px; width: 100%;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row">
-                        <div class="col-lg-10 mx-auto">
+                        <div class="col-lg-12 mx-auto">
                             <form id="networkActionForm">
                                 <!-- Network Configuration -->
                                 <div class="card shadow-sm mb-4">
@@ -692,7 +770,7 @@
 
                     <!-- Current Networks Table -->
                     <div class="row">
-                        <div class="col-lg-10 mx-auto">
+                        <div class="col-lg-12 mx-auto">
                             <div class="card shadow-sm mb-4">
                                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                                     <h5 class="mb-0">Current Network Instances</h5>
@@ -775,7 +853,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-lg-10 mx-auto">
+                        <div class="col-lg-12 mx-auto">
                             <form id="netboxConfigForm">
                                 <!-- Netbox Configuration -->
                                 <div class="card shadow-sm mb-4">
@@ -964,7 +1042,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-lg-10 mx-auto">
+                        <div class="col-lg-12 mx-auto">
                             <form id="apiKeysForm">
                                 <!-- NaC-API Configuration -->
                                 <div class="card shadow-sm mb-4">
@@ -1143,7 +1221,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-lg-10 mx-auto">
+                        <div class="col-lg-12 mx-auto">
                             <!-- System Information -->
                             <div class="card shadow-sm">
                                 <div class="card-header bg-secondary text-white">

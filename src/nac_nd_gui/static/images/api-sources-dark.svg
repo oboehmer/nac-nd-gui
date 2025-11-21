@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500">
+  <!-- Define gradients and styles for dark mode -->
+  <defs>
+    <!-- Gradient for ITSM button - darker, more saturated -->
+    <linearGradient id="itsmGradientDark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F472B6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#EC4899;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Gradient for Private Portal button - darker, more saturated -->
+    <linearGradient id="portalGradientDark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#A78BFA;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Gradient for NaC-API button - darker, more saturated -->
+    <linearGradient id="nacGradientDark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4F46E5;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Gradient for SCM button - darker, more saturated -->
+    <linearGradient id="scmGradientDark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F472B6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#EC4899;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Arrow marker - lighter for dark mode -->
+    <marker id="arrowheadDark" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#94A3B8" />
+    </marker>
+
+    <!-- Glow effect for dark mode -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Title -->
+  <text x="450" y="30" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#E4E6EB" text-anchor="middle">NaC-API integration</text>
+
+  <!-- ITSM Button (Top Left) -->
+  <g id="itsm">
+    <rect x="150" y="100" width="200" height="80" rx="8" fill="url(#itsmGradientDark)" filter="url(#glow)" opacity="0.9" />
+    <rect x="150" y="100" width="200" height="80" rx="8" fill="none" stroke="#F9A8D4" stroke-width="2" />
+    <text x="250" y="145" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF" text-anchor="middle">ITSM</text>
+    <text x="250" y="165" font-family="Arial, sans-serif" font-size="12" fill="#FCE7F3" text-anchor="middle">Service Tickets</text>
+
+    <!-- ITSM Icon - Ticket/Document -->
+    <g opacity="0.9" filter="url(#glow)">
+      <rect x="205" y="30" width="90" height="60" rx="5" stroke="#F472B6" stroke-width="4" fill="none" />
+      <line x1="215" y1="45" x2="285" y2="45" stroke="#F472B6" stroke-width="3" stroke-linecap="round" />
+      <line x1="215" y1="60" x2="270" y2="60" stroke="#F472B6" stroke-width="3" stroke-linecap="round" />
+      <line x1="215" y1="75" x2="285" y2="75" stroke="#F472B6" stroke-width="3" stroke-linecap="round" />
+    </g>
+  </g>
+
+  <!-- Private Portal Button (Top Right) -->
+  <g id="portal">
+    <rect x="550" y="100" width="200" height="80" rx="8" fill="url(#portalGradientDark)" filter="url(#glow)" opacity="0.9" />
+    <rect x="550" y="100" width="200" height="80" rx="8" fill="none" stroke="#A78BFA" stroke-width="2" />
+    <text x="650" y="145" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Private Portal</text>
+    <text x="650" y="165" font-family="Arial, sans-serif" font-size="12" fill="#DDD6FE" text-anchor="middle">Self-Service</text>
+
+    <!-- Portal Icon - Globe/Portal -->
+    <g opacity="0.9" filter="url(#glow)">
+      <circle cx="650" cy="60" r="35" stroke="#A78BFA" stroke-width="4" fill="none" />
+      <ellipse cx="650" cy="60" rx="12" ry="35" stroke="#A78BFA" stroke-width="4" fill="none" />
+      <line x1="615" y1="60" x2="685" y2="60" stroke="#A78BFA" stroke-width="4" stroke-linecap="round" />
+      <line x1="650" y1="25" x2="650" y2="95" stroke="#A78BFA" stroke-width="4" stroke-linecap="round" />
+    </g>
+  </g>
+
+  <!-- Arrow from ITSM to NaC-API -->
+  <path d="M 250 180 L 250 230 L 370 270" stroke="#94A3B8" stroke-width="3" fill="none" marker-end="url(#arrowheadDark)" opacity="0.8" />
+
+  <!-- Arrow from Private Portal to NaC-API -->
+  <path d="M 650 180 L 650 230 L 530 270" stroke="#94A3B8" stroke-width="3" fill="none" marker-end="url(#arrowheadDark)" opacity="0.8" />
+
+  <!-- NaC-API Button (Middle Center) -->
+  <g id="nacapi">
+    <rect x="350" y="280" width="200" height="80" rx="8" fill="url(#nacGradientDark)" filter="url(#glow)" opacity="0.9" />
+    <rect x="350" y="280" width="200" height="80" rx="8" fill="none" stroke="#818CF8" stroke-width="2" />
+    <text x="450" y="325" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF" text-anchor="middle">NaC-API</text>
+    <text x="450" y="345" font-family="Arial, sans-serif" font-size="12" fill="#C7D2FE" text-anchor="middle">Network as Code API</text>
+
+    <!-- API Icon - Curly Braces -->
+    <g opacity="0.9" filter="url(#glow)">
+      <path d="M 400 215 C 390 215 385 225 385 235 L 385 245 C 385 255 380 260 370 260 C 380 260 385 265 385 275 L 385 285 C 385 295 390 305 400 305"
+            stroke="#818CF8" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 500 215 C 510 215 515 225 515 235 L 515 245 C 515 255 520 260 530 260 C 520 260 515 265 515 275 L 515 285 C 515 295 510 305 500 305"
+            stroke="#818CF8" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="450" y="265" font-family="monospace" font-size="28" font-weight="bold" fill="#818CF8" text-anchor="middle">API</text>
+    </g>
+  </g>
+
+  <!-- Arrow from NaC-API to SCM (vertical) -->
+  <line x1="450" y1="360" x2="450" y2="390" stroke="#94A3B8" stroke-width="3" marker-end="url(#arrowheadDark)" opacity="0.8" />
+
+  <!-- SCM Button (Bottom Center - Below NaC-API) -->
+  <g id="scm">
+    <rect x="350" y="400" width="200" height="80" rx="8" fill="url(#scmGradientDark)" filter="url(#glow)" opacity="0.9" />
+    <rect x="350" y="400" width="200" height="80" rx="8" fill="none" stroke="#F9A8D4" stroke-width="2" />
+    <text x="450" y="435" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF" text-anchor="middle">SCM</text>
+    <text x="450" y="455" font-family="Arial, sans-serif" font-size="11" fill="#FCE7F3" text-anchor="middle">Version Control</text>
+    <text x="450" y="470" font-family="Arial, sans-serif" font-size="11" fill="#FCE7F3" text-anchor="middle">Source Code Management</text>
+
+    <!-- SCM Icon - Git branch (to the right of button) -->
+    <g opacity="0.9" filter="url(#glow)">
+      <!-- Main branch line -->
+      <line x1="570" y1="415" x2="570" y2="465" stroke="#F472B6" stroke-width="5" stroke-linecap="round" />
+      <!-- Branch line -->
+      <path d="M 570 430 Q 590 430 600 445 L 600 465" stroke="#F472B6" stroke-width="5" fill="none" stroke-linecap="round" />
+      <!-- Commit circles -->
+      <circle cx="570" cy="415" r="6" fill="#F472B6" />
+      <circle cx="570" cy="440" r="6" fill="#F472B6" />
+      <circle cx="570" cy="465" r="6" fill="#F472B6" />
+      <circle cx="600" cy="450" r="6" fill="#F472B6" />
+      <circle cx="600" cy="465" r="6" fill="#F472B6" />
+    </g>
+  </g>
+</svg>

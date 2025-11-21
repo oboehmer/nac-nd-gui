@@ -12,7 +12,9 @@
       "Bash(tree:*)",
       "Bash(python3:*)",
       "Bash(uv add:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(uv run:*)",
+      "Bash(xmllint:*)"
     ],
     "deny": [],
     "ask": []

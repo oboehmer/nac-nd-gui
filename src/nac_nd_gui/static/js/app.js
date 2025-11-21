@@ -4,9 +4,171 @@
 // Store table instances (shared across modules)
 const tableInstances = {};
 
+/**
+ * Theme Management Functions
+ */
+
+// Get the current theme preference from localStorage (light, dark, auto)
+function getThemePreference() {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme || 'auto'; // Default to auto mode
+}
+
+// Get the actual theme to apply based on preference
+function getActualTheme(preference) {
+    if (preference === 'auto') {
+        // Check system preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            return 'dark';
+        }
+        return 'light';
+    }
+    return preference;
+}
+
+// Apply the theme to the page
+function applyTheme(actualTheme) {
+    const html = document.documentElement;
+
+    if (actualTheme === 'dark') {
+        html.setAttribute('data-theme', 'dark');
+    } else {
+        html.removeAttribute('data-theme');
+    }
+}
+
+// Update the theme icon based on preference
+function updateThemeIcon(preference) {
+    const themeIcon = document.getElementById('themeIcon');
+    if (!themeIcon) return;
+
+    // Remove all possible icon classes
+    themeIcon.classList.remove('bi-sun-fill', 'bi-moon-stars-fill', 'bi-circle-half');
+
+    if (preference === 'light') {
+        themeIcon.classList.add('bi-sun-fill');
+        themeIcon.parentElement.setAttribute('title', 'Theme: Light (click for Dark)');
+    } else if (preference === 'dark') {
+        themeIcon.classList.add('bi-moon-stars-fill');
+        themeIcon.parentElement.setAttribute('title', 'Theme: Dark (click for Auto)');
+    } else { // auto
+        themeIcon.classList.add('bi-circle-half');
+        themeIcon.parentElement.setAttribute('title', 'Theme: Auto (click for Light)');
+    }
+}
+
+// Update the pipeline SVG based on actual theme
+function updatePipelineSvg(actualTheme) {
+    const pipelineSvg = document.getElementById('pipelineSvg');
+    if (!pipelineSvg) return;
+
+    if (actualTheme === 'dark') {
+        pipelineSvg.src = '/static/images/devops-pipeline-dark.svg';
+    } else {
+        pipelineSvg.src = '/static/images/devops-pipeline.svg';
+    }
+}
+
+// Update the API sources SVG based on actual theme
+function updateApiSourcesSvg(actualTheme) {
+    const apiSourcesSvg = document.getElementById('apiSourcesSvg');
+    if (!apiSourcesSvg) return;
+
+    if (actualTheme === 'dark') {
+        apiSourcesSvg.src = '/static/images/api-sources-dark.svg';
+    } else {
+        apiSourcesSvg.src = '/static/images/api-sources.svg';
+    }
+}
+
+// Update the actions network SVG based on actual theme
+function updateActionsNetworkSvg(actualTheme) {
+    const actionsNetworkSvg = document.getElementById('actionsNetworkSvg');
+    if (!actionsNetworkSvg) return;
+
+    if (actualTheme === 'dark') {
+        actionsNetworkSvg.src = '/static/images/actions-network-dark.svg';
+    } else {
+        actionsNetworkSvg.src = '/static/images/actions-network.svg';
+    }
+}
+
+// Set the theme preference and apply it
+function setTheme(preference) {
+    // Save preference to localStorage
+    localStorage.setItem('theme', preference);
+
+    // Get the actual theme to apply
+    const actualTheme = getActualTheme(preference);
+
+    // Apply the theme
+    applyTheme(actualTheme);
+
+    // Update icon
+    updateThemeIcon(preference);
+
+    // Update pipeline SVG
+    updatePipelineSvg(actualTheme);
+
+    // Update API sources SVG
+    updateApiSourcesSvg(actualTheme);
+
+    // Update actions network SVG
+    updateActionsNetworkSvg(actualTheme);
+
+    console.log(`Theme preference set to: ${preference} (applying: ${actualTheme})`);
+}
+
+// Toggle theme (cycles through light -> dark -> auto)
+function toggleTheme() {
+    const currentPreference = getThemePreference();
+    let newPreference;
+
+    if (currentPreference === 'light') {
+        newPreference = 'dark';
+    } else if (currentPreference === 'dark') {
+        newPreference = 'auto';
+    } else { // auto
+        newPreference = 'light';
+    }
+
+    setTheme(newPreference);
+}
+
+// Initialize theme on page load
+function initializeTheme() {
+    const preference = getThemePreference();
+    setTheme(preference);
+
+    // Add event listener to theme toggle button
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+    }
+
+    // Listen for system theme changes (only applies in auto mode)
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            const currentPreference = getThemePreference();
+            // Only auto-switch if in auto mode
+            if (currentPreference === 'auto') {
+                const actualTheme = e.matches ? 'dark' : 'light';
+                applyTheme(actualTheme);
+                updatePipelineSvg(actualTheme);
+                updateApiSourcesSvg(actualTheme);
+                updateActionsNetworkSvg(actualTheme);
+                console.log(`System theme changed, applying: ${actualTheme}`);
+            }
+        });
+    }
+}
+
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     console.log('App initialized');
+
+    // Initialize theme (must be first to avoid flash)
+    initializeTheme();
 
     // Initialize sidebar navigation
     initializeSidebarNavigation();

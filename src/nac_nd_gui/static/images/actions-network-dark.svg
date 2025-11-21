@@ -1,0 +1,189 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320">
+  <!-- Define gradients and styles for dark mode -->
+  <defs>
+    <!-- Gradient for boxes - darker/muted versions -->
+    <linearGradient id="boxGradient1Dark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#60A5FA;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#93C5FD;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="boxGradient2Dark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#06B6D4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#22D3EE;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="boxGradient3Dark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A78BFA;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="boxGradient4Dark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#34D399;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="boxGradient5Dark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#818CF8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="boxGradient6Dark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F472B6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F9A8D4;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Arrow marker for dark mode -->
+    <marker id="arrowheadDark" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#94A3B8" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="600" y="30" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#E2E8F0" text-anchor="middle">Actions Network - NetBox Integration</text>
+
+  <!-- Flow indicator icons - LARGE - CENTERED OVER BOXES -->
+  <g id="flow-icons">
+    <!-- GUI icon for NaC-ND-GUI - CENTERED AT 95 -->
+    <g opacity="0.9">
+      <!-- Monitor/screen -->
+      <rect x="65" y="70" width="60" height="45" rx="4" stroke="#60A5FA" stroke-width="4" fill="none" />
+      <!-- Screen stand -->
+      <line x1="95" y1="115" x2="95" y2="130" stroke="#60A5FA" stroke-width="4" stroke-linecap="round" />
+      <line x1="83" y1="130" x2="107" y2="130" stroke="#60A5FA" stroke-width="4" stroke-linecap="round" />
+      <!-- Screen content lines -->
+      <line x1="73" y1="83" x2="117" y2="83" stroke="#60A5FA" stroke-width="2" stroke-linecap="round" />
+      <line x1="73" y1="93" x2="107" y2="93" stroke="#60A5FA" stroke-width="2" stroke-linecap="round" />
+      <line x1="73" y1="103" x2="112" y2="103" stroke="#60A5FA" stroke-width="2" stroke-linecap="round" />
+    </g>
+
+    <!-- Database icon for NetBox - CENTERED AT 270 -->
+    <g opacity="0.9">
+      <!-- Database cylinder top -->
+      <ellipse cx="270" cy="85" rx="35" ry="13" stroke="#22D3EE" stroke-width="4" fill="none" />
+      <!-- Database cylinder body -->
+      <line x1="235" y1="85" x2="235" y2="125" stroke="#22D3EE" stroke-width="4" stroke-linecap="round" />
+      <line x1="305" y1="85" x2="305" y2="125" stroke="#22D3EE" stroke-width="4" stroke-linecap="round" />
+      <!-- Database cylinder bottom -->
+      <ellipse cx="270" cy="125" rx="35" ry="13" stroke="#22D3EE" stroke-width="4" fill="none" />
+      <!-- Data lines -->
+      <line x1="248" y1="100" x2="292" y2="100" stroke="#22D3EE" stroke-width="2" stroke-linecap="round" />
+      <line x1="248" y1="112" x2="292" y2="112" stroke="#22D3EE" stroke-width="2" stroke-linecap="round" />
+    </g>
+
+    <!-- Processing/Gear icon - CENTERED AT 445 -->
+    <g opacity="0.9">
+      <!-- Processing gear -->
+      <circle cx="445" cy="105" r="30" stroke="#A78BFA" stroke-width="4" fill="none" />
+      <circle cx="445" cy="105" r="15" fill="#A78BFA" />
+      <!-- Gear teeth -->
+      <line x1="445" y1="75" x2="445" y2="65" stroke="#A78BFA" stroke-width="4" stroke-linecap="round" />
+      <line x1="445" y1="135" x2="445" y2="145" stroke="#A78BFA" stroke-width="4" stroke-linecap="round" />
+      <line x1="415" y1="105" x2="405" y2="105" stroke="#A78BFA" stroke-width="4" stroke-linecap="round" />
+      <line x1="475" y1="105" x2="485" y2="105" stroke="#A78BFA" stroke-width="4" stroke-linecap="round" />
+    </g>
+
+    <!-- Document/Schema icon - CENTERED AT 620 -->
+    <g opacity="0.9">
+      <!-- Document with folded corner -->
+      <path d="M 590 75 L 590 135 L 650 135 L 650 95 L 635 75 Z"
+            stroke="#34D399" stroke-width="4" fill="none" stroke-linejoin="round" />
+      <path d="M 635 75 L 635 95 L 650 95"
+            stroke="#34D399" stroke-width="4" fill="none" stroke-linejoin="round" />
+      <!-- Document lines -->
+      <line x1="600" y1="95" x2="640" y2="95" stroke="#34D399" stroke-width="2" stroke-linecap="round" />
+      <line x1="600" y1="105" x2="640" y2="105" stroke="#34D399" stroke-width="2" stroke-linecap="round" />
+      <line x1="600" y1="115" x2="633" y2="115" stroke="#34D399" stroke-width="2" stroke-linecap="round" />
+      <line x1="600" y1="125" x2="633" y2="125" stroke="#34D399" stroke-width="2" stroke-linecap="round" />
+    </g>
+
+    <!-- API icon for NaC-API - curly braces {} - CENTERED AT 795 -->
+    <g opacity="0.9">
+      <path d="M 755 65 C 748 65 745 72 745 80 L 745 88 C 745 96 742 100 735 100 C 742 100 745 104 745 112 L 745 120 C 745 128 748 135 755 135"
+            stroke="#818CF8" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 835 65 C 842 65 845 72 845 80 L 845 88 C 845 96 848 100 855 100 C 848 100 845 104 845 112 L 845 120 C 845 128 842 135 835 135"
+            stroke="#818CF8" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="795" y="108" font-family="monospace" font-size="26" font-weight="bold" fill="#818CF8" text-anchor="middle">API</text>
+    </g>
+
+    <!-- Git branch icon for SCM - CENTERED AT 970 -->
+    <g opacity="0.9">
+      <!-- Main branch line -->
+      <line x1="970" y1="80" x2="970" y2="130" stroke="#F9A8D4" stroke-width="5" stroke-linecap="round" />
+      <!-- Branch line -->
+      <path d="M 970 95 Q 985 95 992 107 L 992 130" stroke="#F9A8D4" stroke-width="5" fill="none" stroke-linecap="round" />
+      <!-- Commit circles -->
+      <circle cx="970" cy="80" r="7" fill="#F9A8D4" />
+      <circle cx="970" cy="105" r="7" fill="#F9A8D4" />
+      <circle cx="970" cy="130" r="7" fill="#F9A8D4" />
+      <circle cx="992" cy="113" r="7" fill="#F9A8D4" />
+      <circle cx="992" cy="130" r="7" fill="#F9A8D4" />
+    </g>
+  </g>
+
+  <!-- Stage 1: NaC-ND-GUI -->
+  <g id="stage1">
+    <rect x="20" y="180" width="150" height="80" rx="8" fill="url(#boxGradient1Dark)" />
+    <rect x="20" y="180" width="150" height="80" rx="8" fill="none" stroke="#3B82F6" stroke-width="2" />
+    <text x="95" y="215" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF" text-anchor="middle">NaC-ND-GUI</text>
+    <text x="95" y="235" font-family="Arial, sans-serif" font-size="11" fill="#DBEAFE" text-anchor="middle">Web Interface</text>
+    <circle cx="95" cy="245" r="3" fill="#FFFFFF" opacity="0.6" />
+  </g>
+
+  <!-- Arrow 1 -->
+  <line x1="170" y1="220" x2="185" y2="220" stroke="#94A3B8" stroke-width="3" marker-end="url(#arrowheadDark)" />
+
+  <!-- Stage 2: NetBox API -->
+  <g id="stage2">
+    <rect x="195" y="180" width="150" height="80" rx="8" fill="url(#boxGradient2Dark)" />
+    <rect x="195" y="180" width="150" height="80" rx="8" fill="none" stroke="#0891B2" stroke-width="2" />
+    <text x="270" y="210" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF" text-anchor="middle">NetBox API</text>
+    <text x="270" y="228" font-family="Arial, sans-serif" font-size="10" fill="#CFFAFE" text-anchor="middle">Retrieve VLANs</text>
+    <text x="270" y="243" font-family="Arial, sans-serif" font-size="10" fill="#CFFAFE" text-anchor="middle">Retrieve Prefixes</text>
+  </g>
+
+  <!-- Arrow 2 -->
+  <line x1="345" y1="220" x2="360" y2="220" stroke="#94A3B8" stroke-width="3" marker-end="url(#arrowheadDark)" />
+
+  <!-- Stage 3: Process Data -->
+  <g id="stage3">
+    <rect x="370" y="180" width="150" height="80" rx="8" fill="url(#boxGradient3Dark)" />
+    <rect x="370" y="180" width="150" height="80" rx="8" fill="none" stroke="#7C3AED" stroke-width="2" />
+    <text x="445" y="215" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Process Data</text>
+    <text x="445" y="235" font-family="Arial, sans-serif" font-size="11" fill="#EDE9FE" text-anchor="middle">Transform &amp; Map</text>
+    <circle cx="445" cy="245" r="3" fill="#FFFFFF" opacity="0.6" />
+  </g>
+
+  <!-- Arrow 3 -->
+  <line x1="520" y1="220" x2="535" y2="220" stroke="#94A3B8" stroke-width="3" marker-end="url(#arrowheadDark)" />
+
+  <!-- Stage 4: Build Schema -->
+  <g id="stage4">
+    <rect x="545" y="180" width="150" height="80" rx="8" fill="url(#boxGradient4Dark)" />
+    <rect x="545" y="180" width="150" height="80" rx="8" fill="none" stroke="#059669" stroke-width="2" />
+    <text x="620" y="215" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Build Schema</text>
+    <text x="620" y="235" font-family="Arial, sans-serif" font-size="11" fill="#D1FAE5" text-anchor="middle">YAML Generation</text>
+    <circle cx="620" cy="245" r="3" fill="#FFFFFF" opacity="0.6" />
+  </g>
+
+  <!-- Arrow 4 -->
+  <line x1="695" y1="220" x2="710" y2="220" stroke="#94A3B8" stroke-width="3" marker-end="url(#arrowheadDark)" />
+
+  <!-- Stage 5: NaC-API -->
+  <g id="stage5">
+    <rect x="720" y="180" width="150" height="80" rx="8" fill="url(#boxGradient5Dark)" />
+    <rect x="720" y="180" width="150" height="80" rx="8" fill="none" stroke="#4F46E5" stroke-width="2" />
+    <text x="795" y="215" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF" text-anchor="middle">NaC-API</text>
+    <text x="795" y="235" font-family="Arial, sans-serif" font-size="11" fill="#E0E7FF" text-anchor="middle">Network as Code</text>
+    <circle cx="795" cy="245" r="3" fill="#FFFFFF" opacity="0.6" />
+  </g>
+
+  <!-- Arrow 5 -->
+  <line x1="870" y1="220" x2="885" y2="220" stroke="#94A3B8" stroke-width="3" marker-end="url(#arrowheadDark)" />
+
+  <!-- Stage 6: SCM -->
+  <g id="stage6">
+    <rect x="895" y="180" width="150" height="80" rx="8" fill="url(#boxGradient6Dark)" />
+    <rect x="895" y="180" width="150" height="80" rx="8" fill="none" stroke="#EC4899" stroke-width="2" />
+    <text x="970" y="210" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF" text-anchor="middle">SCM</text>
+    <text x="970" y="228" font-family="Arial, sans-serif" font-size="10" fill="#FCE7F3" text-anchor="middle">Merge Request</text>
+    <text x="970" y="243" font-family="Arial, sans-serif" font-size="10" fill="#FCE7F3" text-anchor="middle">Repository Update</text>
+  </g>
+
+  <!-- Pipeline status line at bottom -->
+  <line x1="20" y1="290" x2="1180" y2="290" stroke="#475569" stroke-width="2" stroke-dasharray="5,5" opacity="0.5" />
+</svg>

@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320">
+  <!-- Define gradients and styles -->
+  <defs>
+    <!-- Gradient for boxes -->
+    <linearGradient id="boxGradient1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6366F1;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="boxGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#EC4899;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F472B6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="boxGradient3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0891B2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06B6D4;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="boxGradient4" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#7C3AED;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="boxGradient5" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#059669;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#10B981;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Arrow marker -->
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#64748B" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="600" y="30" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#1E293B" text-anchor="middle">DevOps Pipeline</text>
+
+  <!-- Pipeline flow indicator icons - LARGE - CENTERED OVER BOXES -->
+  <g id="flow-icons">
+    <!-- API icon for NaC-API - curly braces {} - CENTERED AT 110 -->
+    <g opacity="0.8">
+      <path d="M 60 60 C 50 60 45 70 45 80 L 45 90 C 45 100 40 105 30 105 C 40 105 45 110 45 120 L 45 130 C 45 140 50 150 60 150"
+            stroke="#4F46E5" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 160 60 C 170 60 175 70 175 80 L 175 90 C 175 100 180 105 190 105 C 180 105 175 110 175 120 L 175 130 C 175 140 170 150 160 150"
+            stroke="#4F46E5" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="110" y="115" font-family="monospace" font-size="32" font-weight="bold" fill="#4F46E5" text-anchor="middle">API</text>
+    </g>
+
+    <!-- Git branch icon for SCM - CENTERED AT 335 -->
+    <g opacity="0.8">
+      <!-- Main branch line -->
+      <line x1="335" y1="75" x2="335" y2="135" stroke="#EC4899" stroke-width="6" stroke-linecap="round" />
+      <!-- Branch line -->
+      <path d="M 335 95 Q 355 95 365 110 L 365 135" stroke="#EC4899" stroke-width="6" fill="none" stroke-linecap="round" />
+      <!-- Commit circles -->
+      <circle cx="335" cy="75" r="8" fill="#EC4899" />
+      <circle cx="335" cy="105" r="8" fill="#EC4899" />
+      <circle cx="335" cy="135" r="8" fill="#EC4899" />
+      <circle cx="365" cy="115" r="8" fill="#EC4899" />
+      <circle cx="365" cy="135" r="8" fill="#EC4899" />
+    </g>
+
+    <!-- Round badge with checkmark for nac-validate - CENTERED AT 560 -->
+    <g opacity="0.8">
+      <!-- Outer circle -->
+      <circle cx="560" cy="105" r="45" stroke="#0891B2" stroke-width="5" fill="none" />
+      <!-- Inner circle for depth -->
+      <circle cx="560" cy="105" r="38" stroke="#0891B2" stroke-width="2" fill="none" />
+      <!-- Large checkmark -->
+      <path d="M 533 105 L 550 122 L 587 80"
+            stroke="#0891B2" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+
+    <!-- Interlocking gears for Automation - CENTERED AT 785 -->
+    <g opacity="0.8">
+      <!-- First gear (larger) -->
+      <circle cx="760" cy="105" r="35" stroke="#7C3AED" stroke-width="5" fill="none" />
+      <circle cx="760" cy="105" r="18" fill="#7C3AED" />
+      <!-- Gear teeth -->
+      <line x1="760" y1="70" x2="760" y2="58" stroke="#7C3AED" stroke-width="5" stroke-linecap="round" />
+      <line x1="760" y1="140" x2="760" y2="152" stroke="#7C3AED" stroke-width="5" stroke-linecap="round" />
+      <line x1="725" y1="105" x2="713" y2="105" stroke="#7C3AED" stroke-width="5" stroke-linecap="round" />
+      <line x1="795" y1="105" x2="807" y2="105" stroke="#7C3AED" stroke-width="5" stroke-linecap="round" />
+      <line x1="735" y1="80" x2="727" y2="72" stroke="#7C3AED" stroke-width="5" stroke-linecap="round" />
+      <line x1="785" y1="130" x2="793" y2="138" stroke="#7C3AED" stroke-width="5" stroke-linecap="round" />
+      <line x1="735" y1="130" x2="727" y2="138" stroke="#7C3AED" stroke-width="5" stroke-linecap="round" />
+      <line x1="785" y1="80" x2="793" y2="72" stroke="#7C3AED" stroke-width="5" stroke-linecap="round" />
+
+      <!-- Second gear (smaller, interlocking) -->
+      <circle cx="810" cy="105" r="25" stroke="#7C3AED" stroke-width="5" fill="none" />
+      <circle cx="810" cy="105" r="13" fill="#7C3AED" />
+      <line x1="810" y1="80" x2="810" y2="70" stroke="#7C3AED" stroke-width="5" stroke-linecap="round" />
+      <line x1="810" y1="130" x2="810" y2="140" stroke="#7C3AED" stroke-width="5" stroke-linecap="round" />
+      <line x1="835" y1="105" x2="845" y2="105" stroke="#7C3AED" stroke-width="5" stroke-linecap="round" />
+      <line x1="792" y1="87" x2="785" y2="80" stroke="#7C3AED" stroke-width="5" stroke-linecap="round" />
+      <line x1="828" y1="123" x2="835" y2="130" stroke="#7C3AED" stroke-width="5" stroke-linecap="round" />
+    </g>
+
+    <!-- Clipboard with checkmarks for nac-test - CENTERED AT 1010 -->
+    <g opacity="0.8">
+      <!-- Clipboard -->
+      <rect x="972" y="65" width="75" height="90" rx="5" stroke="#059669" stroke-width="5" fill="none" />
+      <rect x="987" y="60" width="45" height="15" rx="3" fill="#059669" />
+      <!-- Checkmarks inside -->
+      <path d="M 985 90 L 997 102 L 1022 75" stroke="#059669" stroke-width="5" fill="none" stroke-linecap="round" />
+      <path d="M 985 120 L 997 132 L 1022 105" stroke="#059669" stroke-width="5" fill="none" stroke-linecap="round" />
+    </g>
+  </g>
+
+  <!-- Pipeline Stage 1: NaC-API -->
+  <g id="stage1">
+    <rect x="20" y="180" width="180" height="80" rx="8" fill="url(#boxGradient1)" />
+    <rect x="20" y="180" width="180" height="80" rx="8" fill="none" stroke="#312E81" stroke-width="2" />
+    <text x="110" y="215" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF" text-anchor="middle">NaC-API</text>
+    <text x="110" y="235" font-family="Arial, sans-serif" font-size="12" fill="#E0E7FF" text-anchor="middle">Network API</text>
+    <circle cx="110" cy="245" r="3" fill="#FFFFFF" opacity="0.6" />
+  </g>
+
+  <!-- Arrow 1 -->
+  <line x1="200" y1="220" x2="235" y2="220" stroke="#64748B" stroke-width="3" marker-end="url(#arrowhead)" />
+
+  <!-- Pipeline Stage 2: SCM -->
+  <g id="stage2">
+    <rect x="245" y="180" width="180" height="80" rx="8" fill="url(#boxGradient2)" />
+    <rect x="245" y="180" width="180" height="80" rx="8" fill="none" stroke="#9F1239" stroke-width="2" />
+    <text x="335" y="215" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF" text-anchor="middle">SCM</text>
+    <text x="335" y="235" font-family="Arial, sans-serif" font-size="12" fill="#FCE7F3" text-anchor="middle">Version Control</text>
+    <circle cx="335" cy="245" r="3" fill="#FFFFFF" opacity="0.6" />
+  </g>
+
+  <!-- Arrow 2 -->
+  <line x1="425" y1="220" x2="460" y2="220" stroke="#64748B" stroke-width="3" marker-end="url(#arrowhead)" />
+
+  <!-- Pipeline Stage 3: nac-validate -->
+  <g id="stage3">
+    <rect x="470" y="180" width="180" height="80" rx="8" fill="url(#boxGradient3)" />
+    <rect x="470" y="180" width="180" height="80" rx="8" fill="none" stroke="#164E63" stroke-width="2" />
+    <text x="560" y="215" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF" text-anchor="middle">nac-validate</text>
+    <text x="560" y="235" font-family="Arial, sans-serif" font-size="12" fill="#CFFAFE" text-anchor="middle">Validation</text>
+    <circle cx="560" cy="245" r="3" fill="#FFFFFF" opacity="0.6" />
+  </g>
+
+  <!-- Arrow 3 -->
+  <line x1="650" y1="220" x2="685" y2="220" stroke="#64748B" stroke-width="3" marker-end="url(#arrowhead)" />
+
+  <!-- Pipeline Stage 4: Automation Execution -->
+  <g id="stage4">
+    <rect x="695" y="180" width="180" height="80" rx="8" fill="url(#boxGradient4)" />
+    <rect x="695" y="180" width="180" height="80" rx="8" fill="none" stroke="#5B21B6" stroke-width="2" />
+    <text x="785" y="215" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Automation</text>
+    <text x="785" y="235" font-family="Arial, sans-serif" font-size="12" fill="#EDE9FE" text-anchor="middle">Deploy</text>
+    <circle cx="785" cy="245" r="3" fill="#FFFFFF" opacity="0.6" />
+  </g>
+
+  <!-- Arrow 4 -->
+  <line x1="875" y1="220" x2="910" y2="220" stroke="#64748B" stroke-width="3" marker-end="url(#arrowhead)" />
+
+  <!-- Pipeline Stage 5: nac-test -->
+  <g id="stage5">
+    <rect x="920" y="180" width="180" height="80" rx="8" fill="url(#boxGradient5)" />
+    <rect x="920" y="180" width="180" height="80" rx="8" fill="none" stroke="#065F46" stroke-width="2" />
+    <text x="1010" y="215" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF" text-anchor="middle">nac-test</text>
+    <text x="1010" y="235" font-family="Arial, sans-serif" font-size="12" fill="#D1FAE5" text-anchor="middle">Testing</text>
+    <circle cx="1010" cy="245" r="3" fill="#FFFFFF" opacity="0.6" />
+  </g>
+
+  <!-- Pipeline status line at bottom -->
+  <line x1="20" y1="290" x2="1180" y2="290" stroke="#CBD5E1" stroke-width="2" stroke-dasharray="5,5" opacity="0.5" />
+</svg>
