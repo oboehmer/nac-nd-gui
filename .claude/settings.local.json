@@ -14,7 +14,8 @@
       "Bash(uv add:*)",
       "Bash(timeout:*)",
       "Bash(uv run:*)",
-      "Bash(xmllint:*)"
+      "Bash(xmllint:*)",
+      "Bash(typos:*)"
     ],
     "deny": [],
     "ask": []
