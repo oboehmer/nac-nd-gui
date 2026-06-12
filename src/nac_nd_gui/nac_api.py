@@ -126,13 +126,15 @@ class NacApiClient:
             })
             logger.info("Authentication headers set successfully")
 
-    def get(self, endpoint: str, params: Optional[Dict] = None) -> Optional[Dict[str, Any]]:
+    def get(self, endpoint: str, params: Optional[Dict] = None, empty_on_404: bool = False) -> Optional[Dict[str, Any]]:
         """
         Make GET request to NaC API
 
         Args:
             endpoint: API endpoint (e.g., '/api/v1/operations/read')
             params: Optional query parameters
+            empty_on_404: If True, return an empty list when the API returns 404
+                          (useful for collection endpoints where no items yet exist)
 
         Returns:
             Response JSON data or None if request failed
@@ -147,6 +149,9 @@ class NacApiClient:
 
             if response.status_code == 200:
                 return response.json()
+            elif response.status_code == 404 and empty_on_404:
+                logger.info(f"GET {endpoint} returned 404 (no items exist yet), returning empty list")
+                return []
             else:
                 logger.error(f"GET request failed: {response.status_code} - {response.text}")
                 return None
@@ -352,7 +357,7 @@ class NacApiClient:
             List of VRF dictionaries formatted for Tabulator, or None if request failed
         """
         logger.info("Fetching VRFs from NaC API for table display")
-        response = self.get('/api/v1/operations/read?path=vxlan/overlay/vrfs')
+        response = self.get('/api/v1/operations/read?path=vxlan/overlay/vrfs', empty_on_404=True)
 
         if response is None:
             logger.error("Failed to retrieve VRF data from NaC API")
@@ -487,7 +492,7 @@ class NacApiClient:
             List of network dictionaries formatted for Tabulator, or None if request failed
         """
         logger.info("Fetching Networks from NaC API for table display")
-        response = self.get('/api/v1/operations/read?path=vxlan/overlay/networks')
+        response = self.get('/api/v1/operations/read?path=vxlan/overlay/networks', empty_on_404=True)
 
         if response is None:
             logger.error("Failed to retrieve network data from NaC API")
