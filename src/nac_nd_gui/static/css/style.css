@@ -922,3 +922,119 @@ input[data-has-value="true"]:focus {
 .spinner-border {
     vertical-align: middle;
 }
+
+/* ============================================================
+   Pre-Approved Changes Workflow
+   ============================================================ */
+
+/* Progressive disclosure sections */
+.workflow-section {
+    transition: opacity 0.3s ease;
+}
+
+.workflow-section.locked {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* Dirty/modified row highlight in interface tables */
+.tabulator-row.pa-row-dirty {
+    background-color: #fff3cd !important;
+}
+
+.tabulator-row.pa-row-dirty:hover {
+    background-color: #fde8a8 !important;
+}
+
+/* Diff display */
+.diff-container {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.diff-block {
+    margin-bottom: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.diff-block-header {
+    background-color: #6c757d;
+    color: #fff;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.diff-line {
+    display: block;
+    padding: 0.1rem 0.75rem;
+    white-space: pre;
+}
+
+.diff-line-added {
+    color: #0a3622;
+    background-color: #d1e7dd;
+}
+
+.diff-line-removed {
+    color: #58151c;
+    background-color: #f8d7da;
+    text-decoration: line-through;
+}
+
+.diff-line-context {
+    color: #495057;
+}
+
+/* Ticket status badges */
+.pa-status-approved {
+    background-color: #198754;
+    color: #fff;
+    padding: 0.25em 0.6em;
+    border-radius: 0.375rem;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+.pa-status-pending {
+    background-color: #ffc107;
+    color: #212529;
+    padding: 0.25em 0.6em;
+    border-radius: 0.375rem;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+/* Inline editable cell styling for Tabulator */
+.tabulator .tabulator-cell.tabulator-editing {
+    border: 2px solid #0dcaf0 !important;
+    background-color: #fff !important;
+    color: #212529 !important;
+}
+
+.tabulator .tabulator-cell.tabulator-editing input,
+.tabulator .tabulator-cell.tabulator-editing select,
+.tabulator .tabulator-cell.tabulator-editing textarea {
+    color: #212529 !important;
+    background-color: #fff !important;
+}
+
+/* Dark mode adjustments */
+[data-bs-theme="dark"] .diff-container {
+    background-color: #212529;
+}
+
+[data-bs-theme="dark"] .diff-block {
+    border-color: #495057;
+}
+
+[data-bs-theme="dark"] .diff-line-context {
+    color: #adb5bd;
+}
+
+[data-bs-theme="dark"] .tabulator-row.pa-row-dirty {
+    background-color: #3d3000 !important;
+}
+

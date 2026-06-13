@@ -316,6 +316,13 @@ function loadPageContent(page, parent) {
             }
         }
 
+        // Initialize pre-approved changes workflow
+        if (page === 'pre-approved-changes') {
+            if (typeof initPreApprovedWorkflow === 'function') {
+                initPreApprovedWorkflow();
+            }
+        }
+
         // Smooth scroll to top of content
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {

@@ -86,6 +86,12 @@
                                 <span>Networks</span>
                             </a>
                         </li>
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" data-page="pre-approved-changes" data-parent="action">
+                                <i class="bi bi-patch-check"></i>
+                                <span>Pre-Approved Changes</span>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 
@@ -784,6 +790,191 @@
                     </div>
                 </div>
 
+                <!-- Pre-Approved Changes Page -->
+                <div id="page-pre-approved-changes" class="page-content">
+                    <div class="page-header mb-4">
+                        <h2><i class="bi bi-patch-check me-2"></i>Pre-Approved Changes</h2>
+                        <p class="text-muted">Execute pre-approved ServiceNow change requests via NaC API</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-12 mx-auto">
+
+                            <!-- Section 1: Context (always visible) -->
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0"><i class="bi bi-ticket-detailed me-2"></i>Change Request Context</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label for="preApprovedFabric" class="form-label fw-bold">
+                                                <i class="bi bi-grid-3x3 text-info me-2"></i>Fabric
+                                            </label>
+                                            <select class="form-select" id="preApprovedFabric">
+                                                <option value="">Loading fabrics...</option>
+                                            </select>
+                                            <small class="form-text text-muted">Contextual label — all NaC switches are shown</small>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <label for="preApprovedTicket" class="form-label fw-bold">
+                                                <i class="bi bi-ticket text-info me-2"></i>ServiceNow Ticket #
+                                            </label>
+                                            <input type="text" class="form-control" id="preApprovedTicket"
+                                                   placeholder="e.g. INC0012345 or CHG0067890">
+                                            <small class="form-text text-muted">Enter the pre-approved change ticket number</small>
+                                        </div>
+                                        <div class="col-md-3 d-flex align-items-end">
+                                            <button type="button" class="btn btn-info w-100" id="preApprovedLookupBtn">
+                                                <span id="preApprovedLookupSpinner" class="spinner-border spinner-border-sm me-2 d-none" role="status"></span>
+                                                <i class="bi bi-search me-1" id="preApprovedLookupIcon"></i>
+                                                Look up ticket
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section 2: Ticket Info (revealed after lookup) -->
+                            <div id="preApprovedTicketSection" class="d-none">
+                                <div class="card shadow-sm mb-4" id="preApprovedTicketCard">
+                                    <div class="card-header text-white" id="preApprovedTicketCardHeader">
+                                        <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Ticket Details</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-3">
+                                                <small class="text-muted d-block">Ticket #</small>
+                                                <strong id="paTicketNumber">—</strong>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-muted d-block">Title</small>
+                                                <span id="paTicketTitle">—</span>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <small class="text-muted d-block">Status</small>
+                                                <span id="paTicketStatus">—</span>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <small class="text-muted d-block">Requested by</small>
+                                                <span id="paTicketRequestor">—</span>
+                                            </div>
+                                            <div class="col-md-1">
+                                                <small class="text-muted d-block">Scheduled</small>
+                                                <span id="paTicketScheduled">—</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Pending approval warning -->
+                                <div id="preApprovedPendingWarning" class="alert alert-warning d-none mb-4">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    <strong>Change not yet approved.</strong> This ticket is pending approval. Workflow steps are locked until the change is approved in ServiceNow.
+                                </div>
+                            </div>
+
+                            <!-- Section 3: Change Type (revealed if Approved) -->
+                            <div id="preApprovedChangeTypeSection" class="d-none workflow-section">
+                                <div class="card shadow-sm mb-4">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h5 class="mb-0"><i class="bi bi-list-task me-2"></i>Change Type</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="col-md-6">
+                                            <label for="preApprovedChangeType" class="form-label fw-bold">
+                                                <i class="bi bi-toggles text-secondary me-2"></i>Select Change Type
+                                            </label>
+                                            <select class="form-select" id="preApprovedChangeType">
+                                                <option value="">— Select a change type —</option>
+                                                <option value="description-change">Interface Description Change</option>
+                                                <option value="access-mgmt">Access Interface Management</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section 4a: Interface Description Change -->
+                            <div id="preApprovedDescSection" class="d-none workflow-section">
+                                <div class="card shadow-sm mb-4">
+                                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="bi bi-card-text me-2"></i>Interface Description Change</h5>
+                                        <button class="btn btn-light btn-sm" id="refreshDescInterfacesBtn">
+                                            <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="alert alert-info py-2 mb-3">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            Edit the <strong>New Description</strong> cell inline. Modified rows are highlighted in yellow and will be included in the merge. Only changed rows are submitted.
+                                        </div>
+                                        <div id="descInterfacesTableContainer">
+                                            <div class="text-center py-4" id="descInterfacesLoading">
+                                                <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+                                                <p class="text-muted mt-2">Loading interfaces...</p>
+                                            </div>
+                                        </div>
+                                        <div id="descInterfacesTable"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section 4b: Access Interface Management -->
+                            <div id="preApprovedAccessSection" class="d-none workflow-section">
+                                <div class="card shadow-sm mb-4">
+                                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="bi bi-hdd-network me-2"></i>Access Interface Management</h5>
+                                        <button class="btn btn-light btn-sm" id="refreshAccessInterfacesBtn">
+                                            <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="alert alert-info py-2 mb-3">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            Only <strong>access</strong> and <strong>trunk</strong> interfaces are shown. Other interface types (routed, loopback, port-channel, etc.) are excluded.
+                                        </div>
+                                        <div id="accessInterfacesTableContainer">
+                                            <div class="text-center py-4" id="accessInterfacesLoading">
+                                                <div class="spinner-border text-success" role="status"><span class="visually-hidden">Loading...</span></div>
+                                                <p class="text-muted mt-2">Loading interfaces...</p>
+                                            </div>
+                                        </div>
+                                        <div id="accessInterfacesTable"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section 5: Actions (shown once a table is loaded) -->
+                            <div id="preApprovedActionsSection" class="d-none workflow-section">
+                                <div id="preApprovedResponse" class="alert d-none mb-3"></div>
+                                <div class="card shadow-sm mb-4">
+                                    <div class="card-body">
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="preApprovedAutoProvision">
+                                            <label class="form-check-label" for="preApprovedAutoProvision">
+                                                <strong>Auto-provision once pre-checks pass</strong>
+                                                <small class="text-muted d-block">If checked, NaC API will immediately apply the change after the merge succeeds.</small>
+                                            </label>
+                                        </div>
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            <button type="button" class="btn btn-success" id="preApprovedMergeBtn">
+                                                <i class="bi bi-git me-2"></i>Merge Changes
+                                            </button>
+                                            <button type="button" class="btn btn-outline-info" id="preApprovedDiffBtn">
+                                                <i class="bi bi-file-diff me-2"></i>Show Diffs
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" id="preApprovedResetBtn">
+                                                <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Form
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
                 <!-- NetBox Overview Page -->
                 <div id="page-netbox-overview" class="page-content">
                     <div class="page-header mb-4">
@@ -1369,6 +1560,29 @@
         </div>
     </div>
 
+    <!-- Pre-Approved Changes Diff Modal -->
+    <div class="modal fade" id="preApprovedDiffModal" tabindex="-1" aria-labelledby="preApprovedDiffModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title" id="preApprovedDiffModalLabel">
+                        <i class="bi bi-file-diff me-2"></i>Change Diff
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div id="preApprovedDiffContent" class="diff-container font-monospace small p-3">
+                        <!-- Diff content rendered here by JS -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <small class="text-muted me-auto"><i class="bi bi-info-circle me-1"></i>Click "Show Diffs" again to refresh</small>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Container for notifications -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 11000;">
         <div id="globalToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
@@ -1572,6 +1786,7 @@
 
     <!-- Custom JavaScript - Load in order: specialized modules first, then main app -->
     <script src="{{ url_for('static', filename='js/nac.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/pre_approved.js') }}"></script>
     <script src="{{ url_for('static', filename='js/nexus.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>

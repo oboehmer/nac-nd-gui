@@ -643,3 +643,116 @@ def merge_network():
             'status': 'error',
             'message': f'Failed to merge Network: {str(e)}'
         }), 500
+
+
+@nac_bp.route('/interfaces/merge', methods=['POST'])
+def merge_interfaces():
+    """
+    Merge interface changes to NaC topology (Pre-Approved Workflow)
+    ---
+    tags:
+      - NaC API
+    summary: Merge interface changes
+    description: >
+        Merges access/trunk interface configuration changes (descriptions, VLANs, enabled state)
+        into the NaC topology data model. Used by the Pre-Approved Changes workflow.
+        Accepts a list of switch objects each containing the modified interfaces.
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - data
+          properties:
+            data:
+              type: array
+              description: List of switch objects with modified interfaces
+              items:
+                type: object
+            changeset:
+              type: string
+              description: Git branch name (derived from SNOW ticket #)
+              example: "inc0012345-a3f"
+            apply_message:
+              type: string
+              description: Commit message for the merge
+              example: "Pre-Approved Interface Change via INC0012345"
+            apply:
+              type: boolean
+              description: Whether to apply (provision) immediately after merge
+              example: false
+    responses:
+      200:
+        description: Interfaces merged successfully
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: success
+            message:
+              type: string
+            data:
+              type: object
+      400:
+        description: Invalid request data
+      500:
+        description: Failed to merge interfaces
+    """
+    try:
+        logger.info("Merge interfaces endpoint called (pre-approved workflow)")
+
+        body = request.get_json()
+
+        if not body:
+            return jsonify({
+                'status': 'error',
+                'message': 'No data provided'
+            }), 400
+
+        switch_data = body.get('data', [])
+        if not switch_data:
+            return jsonify({
+                'status': 'error',
+                'message': 'No interface changes provided in data array'
+            }), 400
+
+        changeset = body.get('changeset', '')
+        apply_message = body.get('apply_message', f'Pre-Approved Interface Change via {changeset}')
+        apply = body.get('apply', False)
+
+        logger.info(f"Merging {len(switch_data)} switch(es), changeset={changeset}, apply={apply}")
+
+        client = get_nac_client()
+
+        response = client.merge_operation(
+            path='vxlan/topology/switches',
+            data=switch_data,
+            change_message=f'Pre-Approved Change: {changeset}' if changeset else 'Pre-Approved Interface Change',
+            apply=apply,
+            apply_message=apply_message,
+            changeset=changeset
+        )
+
+        if response is not None:
+            return jsonify({
+                'status': 'success',
+                'message': f'Interface changes merged successfully (changeset: {changeset})',
+                'data': response
+            })
+        else:
+            logger.error("Failed to merge interfaces - NaC API returned None")
+            return jsonify({
+                'status': 'error',
+                'message': 'Failed to merge interface changes in NaC API'
+            }), 500
+
+    except Exception as e:
+        logger.error(f"Error in merge interfaces endpoint: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to merge interfaces: {str(e)}'
+        }), 500
+

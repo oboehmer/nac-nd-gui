@@ -6,12 +6,37 @@ Handles authentication and API interactions with Network-as-Code API
 import requests
 import yaml
 import os
+import json
 from typing import Dict, Any, Optional
 import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+_NACAPI_DEBUG = os.environ.get("NACAPI_DEBUG", "1") != "0"
+
+
+def _nacapi_print(method: str, url: str, payload: Any = None, status: int = None, response_body: Any = None):
+    """Print NaC API interactions to stdout for demo visibility."""
+    if not _NACAPI_DEBUG:
+        return
+    sep = "─" * 72
+    print(f"\n{sep}")
+    print(f"[NaC API] {method}  {url}")
+    if payload is not None:
+        print("[NaC API] REQUEST PAYLOAD:")
+        print(json.dumps(payload, indent=2))
+    if status is not None:
+        print(f"[NaC API] RESPONSE STATUS: {status}")
+    if response_body is not None:
+        body_str = json.dumps(response_body, indent=2) if isinstance(response_body, (dict, list)) else str(response_body)
+        # Truncate very large responses so the terminal stays readable
+        if len(body_str) > 2000:
+            body_str = body_str[:2000] + "\n... (truncated)"
+        print("[NaC API] RESPONSE BODY:")
+        print(body_str)
+    print(sep)
 
 
 class NacApiClient:
@@ -148,12 +173,16 @@ class NacApiClient:
             response = self.session.get(url, params=params, verify=False, timeout=30)
 
             if response.status_code == 200:
-                return response.json()
+                data = response.json()
+                _nacapi_print("GET", url, status=response.status_code, response_body=data)
+                return data
             elif response.status_code == 404 and empty_on_404:
                 logger.info(f"GET {endpoint} returned 404 (no items exist yet), returning empty list")
+                _nacapi_print("GET", url, status=response.status_code, response_body=[])
                 return []
             else:
                 logger.error(f"GET request failed: {response.status_code} - {response.text}")
+                _nacapi_print("GET", url, status=response.status_code, response_body=response.text)
                 return None
 
         except requests.exceptions.RequestException as e:
@@ -178,15 +207,20 @@ class NacApiClient:
 
         try:
             url = f"{self.api_url}{endpoint}"
+            _nacapi_print("POST", url, payload=data)
             response = self.session.post(url, json=data, params=params, verify=False, timeout=30)
 
             if response.status_code in [200, 201]:
-                return response.json()
+                resp_data = response.json()
+                _nacapi_print("POST", url, status=response.status_code, response_body=resp_data)
+                return resp_data
             elif response.status_code == 204:
                 # 204 No Content - successful but no body to return
+                _nacapi_print("POST", url, status=response.status_code, response_body="(no content)")
                 return {'status': 'success', 'message': 'Operation completed successfully'}
             else:
                 logger.error(f"POST request failed: {response.status_code} - {response.text}")
+                _nacapi_print("POST", url, status=response.status_code, response_body=response.text)
                 return None
 
         except requests.exceptions.RequestException as e:
@@ -785,6 +819,7 @@ class NacApiClient:
                           change_message: Optional[str] = None,
                           apply: bool = False,
                           apply_message: Optional[str] = None,
+                          changeset: Optional[str] = None,
                           source: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
         """
         Generic method to handle NaC API operations
@@ -823,6 +858,9 @@ class NacApiClient:
 
         if apply_message:
             operation_payload["operation"]["apply_message"] = apply_message
+
+        if changeset:
+            operation_payload["operation"]["changeset"] = changeset
 
         if source:
             operation_payload["source"] = source
@@ -906,6 +944,7 @@ class NacApiClient:
                        change_message: Optional[str] = None,
                        apply: bool = False,
                        apply_message: Optional[str] = None,
+                       changeset: Optional[str] = None,
                        source: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
         """
         Execute a merge operation on NaC API
@@ -916,12 +955,13 @@ class NacApiClient:
             change_message: Optional message describing the change
             apply: Whether to apply the changeset immediately
             apply_message: Optional message for the apply operation
+            changeset: Optional git branch name for the change
             source: Optional source information
 
         Returns:
             Response JSON data or None if request failed
         """
-        return self._operation_request("merge", path, data, change_message, apply, apply_message, source)
+        return self._operation_request("merge", path, data, change_message, apply, apply_message, changeset, source)
 
     def replace_operation(self, path: str, data: Any,
                          change_message: Optional[str] = None,
