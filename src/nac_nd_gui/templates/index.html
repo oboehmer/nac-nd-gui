@@ -792,9 +792,14 @@
 
                 <!-- Pre-Approved Changes Page -->
                 <div id="page-pre-approved-changes" class="page-content">
-                    <div class="page-header mb-4">
-                        <h2><i class="bi bi-patch-check me-2"></i>Pre-Approved Changes</h2>
-                        <p class="text-muted">Execute pre-approved ServiceNow change requests via NaC API</p>
+                    <div class="page-header mb-4 d-flex justify-content-between align-items-start">
+                        <div>
+                            <h2><i class="bi bi-patch-check me-2"></i>Pre-Approved Changes</h2>
+                            <p class="text-muted mb-0">Execute pre-approved ServiceNow change requests via NaC API</p>
+                        </div>
+                        <button type="button" class="btn btn-outline-secondary" onclick="resetPreApprovedWorkflow()">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Form
+                        </button>
                     </div>
 
                     <div class="row">
@@ -953,12 +958,12 @@
                                             <input class="form-check-input" type="checkbox" id="preApprovedAutoProvision">
                                             <label class="form-check-label" for="preApprovedAutoProvision">
                                                 <strong>Auto-provision once pre-checks pass</strong>
-                                                <small class="text-muted d-block">If checked, NaC API will immediately apply the change after the merge succeeds.</small>
+                                                <small class="text-muted d-block">If checked, Gitlab will auto-merge changes into production once pre-checks pass.</small>
                                             </label>
                                         </div>
                                         <div class="d-flex gap-2 flex-wrap">
                                             <button type="button" class="btn btn-success" id="preApprovedMergeBtn">
-                                                <i class="bi bi-git me-2"></i>Merge Changes
+                                                <i class="bi bi-git me-2"></i>Submit Changes
                                             </button>
                                             <button type="button" class="btn btn-outline-info" id="preApprovedDiffBtn">
                                                 <i class="bi bi-file-diff me-2"></i>Show Diffs

@@ -466,7 +466,7 @@ function handlePreApprovedMerge() {
     // Disable button + show spinner
     const mergeBtn = document.getElementById('preApprovedMergeBtn');
     mergeBtn.disabled = true;
-    mergeBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Merging...';
+    mergeBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Submitting...';
 
     responseEl.classList.add('d-none');
 
@@ -478,8 +478,11 @@ function handlePreApprovedMerge() {
         .then(r => r.json())
         .then(json => {
             if (json.status === 'success' || json.status === 'ok') {
-                responseEl.className = 'alert alert-success';
-                responseEl.innerHTML = `<i class="bi bi-check-circle me-2"></i><strong>Merge successful!</strong> Changes submitted on branch <code>${changeset}</code>.`;
+                responseEl.className = 'alert alert-success d-flex justify-content-between align-items-center';
+                responseEl.innerHTML = `<span><i class="bi bi-check-circle me-2"></i><strong>Changes submitted!</strong> Branch <code>${changeset}</code> created.</span>
+                    <button class="btn btn-sm btn-outline-success ms-3 text-nowrap" onclick="resetPreApprovedWorkflow()">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Start New Change
+                    </button>`;
             } else {
                 throw new Error(json.message || JSON.stringify(json));
             }
@@ -490,8 +493,9 @@ function handlePreApprovedMerge() {
         })
         .finally(() => {
             responseEl.classList.remove('d-none');
+            responseEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
             mergeBtn.disabled = false;
-            mergeBtn.innerHTML = '<i class="bi bi-git me-2"></i>Merge Changes';
+            mergeBtn.innerHTML = '<i class="bi bi-git me-2"></i>Submit Changes';
         });
 }
 
