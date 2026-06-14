@@ -657,6 +657,9 @@ def merge_interfaces():
         Merges access/trunk interface configuration changes (descriptions, VLANs, enabled state)
         into the NaC topology data model. Used by the Pre-Approved Changes workflow.
         Accepts a list of switch objects each containing the modified interfaces.
+        Internally decomposes the changes into a single batch operation, targeting each
+        interface individually via selector paths
+        (e.g. vxlan/topology/switches/name=LEAF1/interfaces/name=ethernet1%2F1).
     parameters:
       - in: body
         name: body
@@ -694,6 +697,8 @@ def merge_interfaces():
               example: success
             message:
               type: string
+            changeset:
+              type: string
             data:
               type: object
       400:
@@ -723,23 +728,46 @@ def merge_interfaces():
         apply_message = body.get('apply_message', f'Pre-Approved Interface Change via {changeset}')
         apply = body.get('apply', False)
 
-        logger.info(f"Merging {len(switch_data)} switch(es), changeset={changeset}, apply={apply}")
+        # Decompose into one batch change entry per interface, each targeting the
+        # interface directly via a selector path so the NaC API performs a
+        # targeted merge rather than a collection-level append.
+        changes = []
+        for switch in switch_data:
+            switch_name = switch.get('name', '')
+            for iface in switch.get('interfaces', []):
+                iface_name = iface.get('name', '')
+                # Slashes in interface names (e.g. ethernet1/1) must be percent-encoded
+                # so they are treated as part of the selector value, not path separators.
+                encoded_name = iface_name.replace('/', '%2F')
+                changes.append({
+                    "type": "merge",
+                    "path": f"vxlan/topology/switches/name={switch_name}/interfaces/name={encoded_name}",
+                    "data": iface,
+                })
+
+        if not changes:
+            return jsonify({
+                'status': 'error',
+                'message': 'No interface changes found in data'
+            }), 400
+
+        logger.info(f"Batch-merging {len(changes)} interface(s) across {len(switch_data)} switch(es), "
+                    f"changeset={changeset}, apply={apply}")
 
         client = get_nac_client()
 
-        response = client.merge_operation(
-            path='vxlan/topology/switches',
-            data=switch_data,
-            change_message=f'Pre-Approved Change: {changeset}' if changeset else 'Pre-Approved Interface Change',
+        response = client.batch_operation(
+            changes=changes,
+            changeset=changeset,
             apply=apply,
             apply_message=apply_message,
-            changeset=changeset
         )
 
         if response is not None:
             return jsonify({
                 'status': 'success',
-                'message': f'Interface changes merged successfully (changeset: {changeset})',
+                'message': f'{len(changes)} interface(s) merged successfully (changeset: {changeset})',
+                'changeset': changeset,
                 'data': response
             })
         else:
