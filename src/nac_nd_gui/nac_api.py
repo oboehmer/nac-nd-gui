@@ -748,6 +748,10 @@ class NacApiClient:
             'name': name,
             'mode': interface_data.get('mode', 'N/A'),
             'description': interface_data.get('description', ''),
+            'enabled': interface_data.get('enabled', True),  # default True — interfaces are enabled unless stated otherwise
+            'access_vlan': interface_data.get('access_vlan'),
+            'native_vlan': interface_data.get('native_vlan'),
+            'trunk_allowed_vlans': interface_data.get('trunk_allowed_vlans', []),
             '_originalData': interface_data  # Store complete API response data
         }
 
