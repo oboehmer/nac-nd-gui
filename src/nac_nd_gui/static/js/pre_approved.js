@@ -9,6 +9,7 @@ let paAccessTable = null;        // Tabulator instance for access mgmt table
 let paActiveChangeType = null;   // 'description-change' | 'access-mgmt'
 let paInitialized = false;       // guard against double-init on nav
 let paCurrentTicket = '';        // current ticket number (normalized)
+let paCurrentChangeset = '';     // changeset name set once on ticket lookup
 
 // ---------------------------------------------------------------------------
 // Entry point called from app.js loadPageContent()
@@ -121,6 +122,17 @@ function mockTicketLookup() {
 
     setTimeout(function () {
         paCurrentTicket = ticketVal.toUpperCase();
+
+        // Build changeset once: sanitized ticket + YYYYMMDDHHmmss timestamp
+        const sanitizedTicket = paCurrentTicket.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        const now = new Date();
+        const ts = now.getFullYear().toString() +
+            String(now.getMonth() + 1).padStart(2, '0') +
+            String(now.getDate()).padStart(2, '0') +
+            String(now.getHours()).padStart(2, '0') +
+            String(now.getMinutes()).padStart(2, '0') +
+            String(now.getSeconds()).padStart(2, '0');
+        paCurrentChangeset = `${sanitizedTicket}-${ts}`;
 
         // Populate ticket card fields
         document.getElementById('paTicketNumber').textContent = paCurrentTicket;
@@ -446,16 +458,7 @@ function handlePreApprovedMerge() {
 
     const data = Object.entries(switchMap).map(([name, interfaces]) => ({ name, interfaces }));
 
-    // Build changeset: sanitized ticket + YYYYMMDDHHmmss timestamp for uniqueness
-    const sanitizedTicket = paCurrentTicket.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    const now = new Date();
-    const ts = now.getFullYear().toString() +
-        String(now.getMonth() + 1).padStart(2, '0') +
-        String(now.getDate()).padStart(2, '0') +
-        String(now.getHours()).padStart(2, '0') +
-        String(now.getMinutes()).padStart(2, '0') +
-        String(now.getSeconds()).padStart(2, '0');
-    const changeset = `${sanitizedTicket}-${ts}`;
+    const changeset = paCurrentChangeset;
 
     const changeTypeName = paActiveChangeType === 'description-change'
         ? 'Interface Description Change'
@@ -645,5 +648,6 @@ function resetPreApprovedWorkflow() {
     paOriginalInterfaces = [];
     paActiveChangeType = null;
     paCurrentTicket = '';
+    paCurrentChangeset = '';
     paInitialized = false;
 }
