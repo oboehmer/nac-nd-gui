@@ -7,6 +7,7 @@ import logging
 import yaml
 from pathlib import Path
 import re
+import requests as _requests
 
 logger = logging.getLogger(__name__)
 
@@ -783,4 +784,175 @@ def merge_interfaces():
             'status': 'error',
             'message': f'Failed to merge interfaces: {str(e)}'
         }), 500
+
+# ---------------------------------------------------------------------------
+# GET /api/v1/nac/pipeline-status?changeset=<branch>
+# ---------------------------------------------------------------------------
+@nac_bp.route('/pipeline-status', methods=['GET'])
+def get_pipeline_status():
+    """
+    Get GitLab CI pipeline status for a changeset (branch).
+    ---
+    tags:
+      - NaC API
+    summary: Get GitLab pipeline status for a branch
+    parameters:
+      - in: query
+        name: changeset
+        required: true
+        type: string
+        description: Branch name (changeset) to query pipelines for
+    responses:
+      200:
+        description: Pipeline status
+      400:
+        description: Missing changeset or not a GitLab provider
+      502:
+        description: GitLab API error
+    """
+    changeset = request.args.get('changeset', '').strip()
+    if not changeset:
+        return jsonify({'status': 'error', 'message': 'changeset query parameter is required'}), 400
+
+    client = get_nac_client()
+    scm_provider = client.scm_provider or ''
+    if scm_provider != 'gitlab':
+        return jsonify({
+            'status': 'error',
+            'message': f'Pipeline status is only supported for GitLab (configured provider: "{scm_provider}")'
+        }), 400
+
+    scm_api_url = (client.scm_api_url or '').rstrip('/')
+    repository_url = client.repository_url or ''
+    api_key = client.api_key or ''
+
+    if not scm_api_url or not repository_url:
+        return jsonify({'status': 'error', 'message': 'GitLab scm_api_url or repository_url not configured'}), 400
+
+    encoded_path = repository_url.replace('/', '%2F')
+    headers = {'PRIVATE-TOKEN': api_key} if api_key else {}
+
+    try:
+        # Fetch pipelines for the branch
+        # scm_api_url is already the full API base (e.g. http://gitlab/api/v4)
+        pipelines_url = f"{scm_api_url}/projects/{encoded_path}/pipelines"
+        resp = _requests.get(pipelines_url, params={'ref': changeset, 'order_by': 'id', 'sort': 'desc', 'per_page': 5},
+                             headers=headers, timeout=10)
+        if not resp.ok:
+            return jsonify({
+                'status': 'error',
+                'message': f'GitLab API error {resp.status_code}: {resp.text[:200]}'
+            }), 502
+
+        pipelines = resp.json()
+        if not pipelines:
+            return jsonify({'status': 'ok', 'pipeline': None})
+
+        latest = pipelines[0]
+        pipeline_id = latest['id']
+        pipeline_status = latest['status']  # pending|running|success|failed|canceled|skipped
+        pipeline_web_url = latest.get('web_url', '')
+
+        # Fetch jobs for the latest pipeline
+        jobs_url = f"{scm_api_url}/projects/{encoded_path}/pipelines/{pipeline_id}/jobs"
+        jobs_resp = _requests.get(jobs_url, params={'per_page': 100}, headers=headers, timeout=10)
+        jobs = jobs_resp.json() if jobs_resp.ok else []
+
+        # Group jobs by stage
+        stages_map: dict = {}
+        for job in jobs:
+            stage = job.get('stage', 'unknown')
+            if stage not in stages_map:
+                stages_map[stage] = []
+            stages_map[stage].append({
+                'id': job.get('id'),
+                'name': job.get('name'),
+                'status': job.get('status'),
+                'web_url': job.get('web_url', ''),
+                'duration': job.get('duration'),
+                'started_at': job.get('started_at'),
+                'finished_at': job.get('finished_at'),
+            })
+
+        stages = [{'name': s, 'jobs': j} for s, j in stages_map.items()]
+
+        return jsonify({
+            'status': 'ok',
+            'pipeline': {
+                'id': pipeline_id,
+                'status': pipeline_status,
+                'web_url': pipeline_web_url,
+                'ref': changeset,
+                'stages': stages,
+            }
+        })
+
+    except _requests.exceptions.ConnectionError as exc:
+        return jsonify({'status': 'error', 'message': f'Cannot reach GitLab: {exc}'}), 502
+    except Exception as exc:
+        logger.error(f"pipeline-status error: {exc}", exc_info=True)
+        return jsonify({'status': 'error', 'message': str(exc)}), 500
+
+
+# ---------------------------------------------------------------------------
+# POST /api/v1/nac/apply
+# ---------------------------------------------------------------------------
+@nac_bp.route('/apply', methods=['POST'])
+def apply_changeset():
+    """
+    Apply an existing changeset (branch) to production via NaC API.
+    ---
+    tags:
+      - NaC API
+    summary: Apply changeset to production
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - changeset
+          properties:
+            changeset:
+              type: string
+              description: Branch name to apply
+            apply_message:
+              type: string
+              description: Merge commit message
+    responses:
+      200:
+        description: Changeset applied successfully
+      400:
+        description: Missing changeset
+      500:
+        description: NaC API error
+    """
+    try:
+        body = request.get_json() or {}
+        changeset = body.get('changeset', '').strip()
+        if not changeset:
+            return jsonify({'status': 'error', 'message': 'changeset is required'}), 400
+
+        apply_message = body.get('apply_message', f'Apply changeset {changeset} to production')
+
+        client = get_nac_client()
+        response = client.apply_changeset(changeset=changeset, apply_message=apply_message)
+
+        if response is not None:
+            return jsonify({
+                'status': 'success',
+                'message': f'Changeset "{changeset}" applied to production successfully',
+                'changeset': changeset,
+                'data': response,
+            })
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': f'Failed to apply changeset "{changeset}" — NaC API returned no response',
+            }), 500
+
+    except Exception as exc:
+        logger.error(f"apply changeset error: {exc}", exc_info=True)
+        return jsonify({'status': 'error', 'message': str(exc)}), 500
 

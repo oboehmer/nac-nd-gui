@@ -1051,6 +1051,50 @@ class NacApiClient:
         """
         return self._operation_request("apply", path, data, change_message, apply, apply_message, source)
 
+    def apply_changeset(self, changeset: str,
+                        apply_message: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        """
+        Apply an existing changeset (branch) to production via NaC API.
+
+        This calls the dedicated POST /api/v1/operations/apply endpoint with only
+        the changeset and apply_message — no path or data payload required.
+
+        Args:
+            changeset: Git branch name to apply (e.g. 'inc0012345-20260614120000')
+            apply_message: Merge commit message for the apply operation
+
+        Returns:
+            Response JSON data or None if request failed
+        """
+        is_configured, _ = self._ensure_config()
+        if not is_configured:
+            return None
+
+        payload: Dict[str, Any] = {
+            "operation": {
+                "changeset": changeset,
+            }
+        }
+        if apply_message:
+            payload["operation"]["apply_message"] = apply_message
+
+        endpoint = "/api/v1/operations/apply"
+        logger.info(f"Applying changeset '{changeset}' to production")
+        _nacapi_print("POST", f"{self.api_url}{endpoint}", payload)
+
+        response = self.session.post(
+            f"{self.api_url}{endpoint}",
+            json=payload,
+        )
+        response_data = (response.json() if response.content else None) or {}
+        _nacapi_print("POST", f"{self.api_url}{endpoint}", status=response.status_code, response_body=response_data)
+
+        if response.ok:
+            return response_data
+        else:
+            logger.error(f"apply_changeset failed: {response.status_code} {response_data}")
+            return None
+
     def close(self):
         """Close the session"""
         self.session.close()

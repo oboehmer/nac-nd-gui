@@ -9,7 +9,15 @@ let paAccessTable = null;        // Tabulator instance for access mgmt table
 let paActiveChangeType = null;   // 'description-change' | 'access-mgmt'
 let paInitialized = false;       // guard against double-init on nav
 let paCurrentTicket = '';        // current ticket number (normalized)
-let paCurrentChangeset = '';     // changeset name set once on ticket lookup
+let paCurrentChangeset = '';     // changeset value sent to NaC API (e.g. 'inc0012345-20260614120000')
+let paCurrentBranch = '';        // actual git branch created by NaC (e.g. 'nac-inc0012345-20260614120000')
+
+// Pipeline / apply state
+let paPipelineMonitors = [];     // array of PipelineMonitor instances (one per submit)
+let paChangeWindowStart = null;  // Date: when change window opens
+let paChangeWindowInterval = null; // setInterval handle for countdown
+let paApplied = false;           // true once Apply to Production succeeds
+let paLatestPipelineStatus = null; // latest terminal pipeline status ('success'|'failed'|...)
 
 // ---------------------------------------------------------------------------
 // Entry point called from app.js loadPageContent()
@@ -133,6 +141,7 @@ function mockTicketLookup() {
             String(now.getMinutes()).padStart(2, '0') +
             String(now.getSeconds()).padStart(2, '0');
         paCurrentChangeset = `${sanitizedTicket}-${ts}`;
+        paCurrentBranch = `nac-${sanitizedTicket}-${ts}`;
 
         // Populate ticket card fields
         document.getElementById('paTicketNumber').textContent = paCurrentTicket;
@@ -140,6 +149,14 @@ function mockTicketLookup() {
         document.getElementById('paTicketStatus').innerHTML = '<span class="pa-status-approved badge">Approved</span>';
         document.getElementById('paTicketRequestor').textContent = 'John Smith';
         document.getElementById('paTicketScheduled').textContent = '2026-06-15 02:00 UTC';
+
+        // Set change window to open 1 minute from now (demo)
+        paChangeWindowStart = new Date(Date.now() + 1 * 60 * 1000);
+
+        // Show scheduled time in ticket card matching the actual change window
+        const openTimeStr = paChangeWindowStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+            + ' (local)';
+        document.getElementById('paTicketScheduled').textContent = openTimeStr;
 
         // Show ticket section — always approved
         document.getElementById('preApprovedTicketSection').classList.remove('d-none');
@@ -459,46 +476,200 @@ function handlePreApprovedMerge() {
     const data = Object.entries(switchMap).map(([name, interfaces]) => ({ name, interfaces }));
 
     const changeset = paCurrentChangeset;
-
     const changeTypeName = paActiveChangeType === 'description-change'
         ? 'Interface Description Change'
         : 'Access Interface Management';
     const apply_message = `Pre-Approved ${changeTypeName} via ${paCurrentTicket} (${dirtyRows.length} interface(s) changed)`;
-    const apply = document.getElementById('preApprovedAutoProvision').checked;
 
     // Disable button + show spinner
     const mergeBtn = document.getElementById('preApprovedMergeBtn');
     mergeBtn.disabled = true;
-    mergeBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Submitting...';
+    mergeBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Submitting…';
 
     responseEl.classList.add('d-none');
 
     fetch('/api/v1/nac/interfaces/merge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data, changeset, apply_message, apply })
+        body: JSON.stringify({ data, changeset, apply_message, apply: false })
     })
         .then(r => r.json())
         .then(json => {
             if (json.status === 'success' || json.status === 'ok') {
-                responseEl.className = 'alert alert-success d-flex justify-content-between align-items-center';
-                responseEl.innerHTML = `<span><i class="bi bi-check-circle me-2"></i><strong>Changes submitted!</strong> Branch <code>${changeset}</code> created.</span>
-                    <button class="btn btn-sm btn-outline-success ms-3 text-nowrap" onclick="resetPreApprovedWorkflow()">
-                        <i class="bi bi-arrow-counterclockwise me-1"></i>Start New Change
-                    </button>`;
+                responseEl.className = 'alert alert-success';
+                responseEl.innerHTML = `<i class="bi bi-check-circle me-2"></i><strong>Changes submitted!</strong> Branch <code>${escapeHtml(changeset)}</code> created — watching for pipeline…`;
+                responseEl.classList.remove('d-none');
+
+                // Launch a new pipeline monitor card
+                _launchPipelineCard(changeset);
             } else {
                 throw new Error(json.message || JSON.stringify(json));
             }
         })
         .catch(err => {
             responseEl.className = 'alert alert-danger';
-            responseEl.innerHTML = `<i class="bi bi-x-circle me-2"></i><strong>Merge failed:</strong> ${err.message}`;
+            responseEl.innerHTML = `<i class="bi bi-x-circle me-2"></i><strong>Merge failed:</strong> ${escapeHtml(err.message)}`;
+            responseEl.classList.remove('d-none');
         })
         .finally(() => {
-            responseEl.classList.remove('d-none');
-            responseEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            responseEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             mergeBtn.disabled = false;
             mergeBtn.innerHTML = '<i class="bi bi-git me-2"></i>Submit Changes';
+        });
+}
+
+// ---------------------------------------------------------------------------
+// Pipeline monitoring
+// ---------------------------------------------------------------------------
+function _launchPipelineCard(changeset) {
+    const pipelineSection = document.getElementById('preApprovedPipelineSection');
+    const pipelineList = document.getElementById('preApprovedPipelineList');
+
+    // Show the section on first submit
+    pipelineSection.classList.remove('d-none');
+    const branchLabel = document.getElementById('paPipelineBranchLabel');
+    if (branchLabel) branchLabel.textContent = paCurrentBranch;
+
+    // Collapse previous (latest) card before adding a new one
+    if (paPipelineMonitors.length > 0) {
+        paPipelineMonitors[paPipelineMonitors.length - 1].collapse();
+    }
+    // Stop all previous monitors (they are already done or collapsed)
+    paPipelineMonitors.forEach(m => m.stop());
+
+    const cardIndex = paPipelineMonitors.length + 1;
+    const cardEl = document.createElement('div');
+    cardEl.className = 'pm-card-wrapper mb-2';
+    pipelineList.appendChild(cardEl);
+
+    const monitor = new PipelineMonitor(cardEl, paCurrentBranch, {
+        label: `Pipeline #${cardIndex}`,
+        onComplete: function (status) {
+            paLatestPipelineStatus = status;
+            _updateApplyButton();
+        }
+    });
+    paPipelineMonitors.push(monitor);
+    monitor.start();
+
+    // Show the apply section and start change window countdown (only on first submit)
+    const applySection = document.getElementById('preApprovedApplySection');
+    if (applySection.classList.contains('d-none')) {
+        applySection.classList.remove('d-none');
+        applySection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        _startChangeWindowCountdown();
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Change window countdown
+// ---------------------------------------------------------------------------
+function _startChangeWindowCountdown() {
+    _updateApplyButton(); // initial render
+    if (paChangeWindowInterval) clearInterval(paChangeWindowInterval);
+    paChangeWindowInterval = setInterval(_updateApplyButton, 1000);
+}
+
+function _updateApplyButton() {
+    const countdownEl = document.getElementById('paChangeWindowCountdown');
+    const applyBtn = document.getElementById('paApplyToProductionBtn');
+
+    if (!countdownEl || !applyBtn) return;
+    if (paApplied) return; // already applied — don't touch
+
+    const now = new Date();
+    const windowOpen = paChangeWindowStart && now >= paChangeWindowStart;
+    const pipelineOk = paLatestPipelineStatus === 'success';
+    const canApply = windowOpen && pipelineOk;
+
+    // Update countdown text
+    if (windowOpen) {
+        countdownEl.innerHTML = '<span class="badge bg-success"><i class="bi bi-unlock me-1"></i>Change window is open</span>';
+    } else if (paChangeWindowStart) {
+        const msLeft = paChangeWindowStart - now;
+        const minsLeft = Math.floor(msLeft / 60000);
+        const secsLeft = Math.floor((msLeft % 60000) / 1000);
+        const openTime = paChangeWindowStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        countdownEl.innerHTML = `<span class="badge bg-secondary">
+            <i class="bi bi-lock me-1"></i>Opens at ${escapeHtml(openTime)} — ${minsLeft}m ${secsLeft}s
+        </span>`;
+    }
+
+    // Update pipeline gate hint
+    const pipelineHintEl = document.getElementById('paApplyPipelineHint');
+    if (pipelineHintEl) {
+        if (pipelineOk) {
+            pipelineHintEl.innerHTML = '<i class="bi bi-check-circle text-success me-1"></i>Latest pipeline passed';
+        } else if (paLatestPipelineStatus === 'failed') {
+            pipelineHintEl.innerHTML = '<i class="bi bi-x-circle text-danger me-1"></i>Latest pipeline failed — fix and re-submit';
+        } else if (paLatestPipelineStatus) {
+            pipelineHintEl.innerHTML = `<i class="bi bi-hourglass-split text-warning me-1"></i>Pipeline ${escapeHtml(paLatestPipelineStatus)}`;
+        } else {
+            pipelineHintEl.innerHTML = '<i class="bi bi-hourglass-split text-warning me-1"></i>Waiting for pipeline to complete…';
+        }
+    }
+
+    if (canApply) {
+        applyBtn.disabled = false;
+        applyBtn.classList.remove('btn-secondary');
+        applyBtn.classList.add('btn-success');
+        if (paChangeWindowInterval) {
+            clearInterval(paChangeWindowInterval);
+            paChangeWindowInterval = null;
+        }
+    } else {
+        applyBtn.disabled = true;
+        applyBtn.classList.remove('btn-success');
+        applyBtn.classList.add('btn-secondary');
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Apply to Production
+// ---------------------------------------------------------------------------
+function handleApplyToProduction() {
+    if (paApplied) return;
+
+    const applyBtn = document.getElementById('paApplyToProductionBtn');
+    const applyResponseEl = document.getElementById('paApplyResponse');
+    const changeTypeName = paActiveChangeType === 'description-change'
+        ? 'Interface Description Change'
+        : 'Access Interface Management';
+    const apply_message = `Pre-Approved ${changeTypeName} via ${paCurrentTicket}`;
+
+    applyBtn.disabled = true;
+    applyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Applying…';
+    applyResponseEl.classList.add('d-none');
+
+    fetch('/api/v1/nac/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ changeset: paCurrentChangeset, apply_message })
+    })
+        .then(r => r.json())
+        .then(json => {
+            if (json.status === 'success') {
+                paApplied = true;
+                applyBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Applied to Production';
+                applyBtn.classList.remove('btn-success');
+                applyBtn.classList.add('btn-outline-success');
+                applyResponseEl.className = 'alert alert-success d-flex justify-content-between align-items-center mt-3';
+                applyResponseEl.innerHTML = `<span><i class="bi bi-check-circle-fill me-2"></i>
+                    <strong>Successfully applied!</strong> Branch <code>${escapeHtml(paCurrentBranch)}</code> merged to production.</span>
+                    <button class="btn btn-sm btn-outline-success ms-3 text-nowrap" onclick="resetPreApprovedWorkflow()">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Start New Change
+                    </button>`;
+                applyResponseEl.classList.remove('d-none');
+            } else {
+                throw new Error(json.message || JSON.stringify(json));
+            }
+        })
+        .catch(err => {
+            applyBtn.disabled = false;
+            applyBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Apply to Production';
+            applyResponseEl.className = 'alert alert-danger mt-3';
+            applyResponseEl.innerHTML = `<i class="bi bi-x-circle me-2"></i><strong>Apply failed:</strong> ${escapeHtml(err.message)}`;
+            applyResponseEl.classList.remove('d-none');
         });
 }
 
@@ -598,16 +769,8 @@ function lineDiff(before, after) {
 }
 
 // ---------------------------------------------------------------------------
-// HTML escape helper
+// HTML escape helper — defined in pipeline_monitor.js (loaded before this file)
 // ---------------------------------------------------------------------------
-function escapeHtml(str) {
-    if (str === null || str === undefined) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-}
 
 // ---------------------------------------------------------------------------
 // Reset the entire workflow
@@ -625,15 +788,44 @@ function resetPreApprovedWorkflow() {
         'preApprovedDescSection',
         'preApprovedAccessSection',
         'preApprovedActionsSection',
-        'preApprovedPendingWarning'
+        'preApprovedPendingWarning',
+        'preApprovedPipelineSection',
+        'preApprovedApplySection',
     ];
-    hideIds.forEach(id => document.getElementById(id).classList.add('d-none'));
+    hideIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('d-none');
+    });
 
     const responseEl = document.getElementById('preApprovedResponse');
     responseEl.classList.add('d-none');
     responseEl.innerHTML = '';
 
-    document.getElementById('preApprovedAutoProvision').checked = false;
+    // Stop all pipeline monitors and clear list
+    paPipelineMonitors.forEach(m => m.stop());
+    paPipelineMonitors = [];
+    const pipelineList = document.getElementById('preApprovedPipelineList');
+    if (pipelineList) pipelineList.innerHTML = '';
+
+    // Stop change window interval
+    if (paChangeWindowInterval) {
+        clearInterval(paChangeWindowInterval);
+        paChangeWindowInterval = null;
+    }
+
+    // Reset apply section
+    const applyBtn = document.getElementById('paApplyToProductionBtn');
+    if (applyBtn) {
+        applyBtn.disabled = true;
+        applyBtn.classList.remove('btn-success', 'btn-outline-success');
+        applyBtn.classList.add('btn-secondary');
+        applyBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Apply to Production';
+    }
+    const applyResponseEl = document.getElementById('paApplyResponse');
+    if (applyResponseEl) {
+        applyResponseEl.classList.add('d-none');
+        applyResponseEl.innerHTML = '';
+    }
 
     if (paDescTable) {
         paDescTable.destroy();
@@ -649,5 +841,9 @@ function resetPreApprovedWorkflow() {
     paActiveChangeType = null;
     paCurrentTicket = '';
     paCurrentChangeset = '';
+    paCurrentBranch = '';
+    paChangeWindowStart = null;
+    paApplied = false;
+    paLatestPipelineStatus = null;
     paInitialized = false;
 }

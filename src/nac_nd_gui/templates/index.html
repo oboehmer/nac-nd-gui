@@ -819,7 +819,6 @@
                                             <select class="form-select" id="preApprovedFabric">
                                                 <option value="">Loading fabrics...</option>
                                             </select>
-                                            <small class="form-text text-muted">Contextual label — all NaC switches are shown</small>
                                         </div>
                                         <div class="col-md-5">
                                             <label for="preApprovedTicket" class="form-label fw-bold">
@@ -829,7 +828,8 @@
                                                    placeholder="e.g. INC0012345 or CHG0067890">
                                             <small class="form-text text-muted">Enter the pre-approved change ticket number</small>
                                         </div>
-                                        <div class="col-md-3 d-flex align-items-end">
+                                        <div class="col-md-3">
+                                            <label class="form-label d-block">&nbsp;</label>
                                             <button type="button" class="btn btn-info w-100" id="preApprovedLookupBtn">
                                                 <span id="preApprovedLookupSpinner" class="spinner-border spinner-border-sm me-2 d-none" role="status"></span>
                                                 <i class="bi bi-search me-1" id="preApprovedLookupIcon"></i>
@@ -954,13 +954,6 @@
                                 <div id="preApprovedResponse" class="alert d-none mb-3"></div>
                                 <div class="card shadow-sm mb-4">
                                     <div class="card-body">
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="checkbox" id="preApprovedAutoProvision">
-                                            <label class="form-check-label" for="preApprovedAutoProvision">
-                                                <strong>Auto-provision once pre-checks pass</strong>
-                                                <small class="text-muted d-block">If checked, Gitlab will auto-merge changes into production once pre-checks pass.</small>
-                                            </label>
-                                        </div>
                                         <div class="d-flex gap-2 flex-wrap">
                                             <button type="button" class="btn btn-success" id="preApprovedMergeBtn">
                                                 <i class="bi bi-git me-2"></i>Submit Changes
@@ -972,6 +965,49 @@
                                                 <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Form
                                             </button>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section 6: Pipeline Visualization (shown after first submit) -->
+                            <div id="preApprovedPipelineSection" class="d-none workflow-section">
+                                <div class="card shadow-sm mb-4">
+                                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>GitLab CI Pipeline</h5>
+                                        <small class="text-white-50">Branch: <code id="paPipelineBranchLabel" class="text-white-50"></code></small>
+                                    </div>
+                                    <div class="card-body p-2">
+                                        <div id="preApprovedPipelineList"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section 7: Change Window + Apply to Production -->
+                            <div id="preApprovedApplySection" class="d-none workflow-section">
+                                <div class="card shadow-sm mb-4 border-2">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h5 class="mb-0"><i class="bi bi-rocket-takeoff me-2"></i>Apply to Production</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+                                            <div>
+                                                <small class="text-muted d-block mb-1">Change window</small>
+                                                <span id="paChangeWindowCountdown">
+                                                    <span class="badge bg-secondary"><i class="bi bi-lock me-1"></i>Calculating…</span>
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <small class="text-muted d-block mb-1">Pipeline gate</small>
+                                                <span id="paApplyPipelineHint" class="small">
+                                                    <i class="bi bi-hourglass-split text-warning me-1"></i>Waiting for pipeline…
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-secondary btn-lg" id="paApplyToProductionBtn"
+                                                disabled onclick="handleApplyToProduction()">
+                                            <i class="bi bi-rocket-takeoff me-2"></i>Apply to Production
+                                        </button>
+                                        <div id="paApplyResponse" class="alert d-none mt-3"></div>
                                     </div>
                                 </div>
                             </div>
@@ -1791,6 +1827,7 @@
 
     <!-- Custom JavaScript - Load in order: specialized modules first, then main app -->
     <script src="{{ url_for('static', filename='js/nac.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/pipeline_monitor.js') }}"></script>
     <script src="{{ url_for('static', filename='js/pre_approved.js') }}"></script>
     <script src="{{ url_for('static', filename='js/nexus.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
