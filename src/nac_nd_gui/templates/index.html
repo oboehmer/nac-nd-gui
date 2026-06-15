@@ -878,7 +878,14 @@
                                 </div>
                             </div>
 
-                            <!-- Section 3: Change Type (revealed if Approved) -->
+                            <!--
+                                Section 3: Change Type selector
+                                REVERT NOTE (multi-use-case): this section is intentionally kept hidden
+                                (d-none is never removed) while only one use case is active in the demo.
+                                To re-enable: remove the "disabled" attribute from the access-mgmt option,
+                                restore the preApprovedChangeTypeSection show-call in mockTicketLookup(),
+                                and restore the change-type addEventListener block in initPreApprovedWorkflow().
+                            -->
                             <div id="preApprovedChangeTypeSection" class="d-none workflow-section">
                                 <div class="card shadow-sm mb-4">
                                     <div class="card-header bg-secondary text-white">
@@ -892,6 +899,7 @@
                                             <select class="form-select" id="preApprovedChangeType">
                                                 <option value="">— Select a change type —</option>
                                                 <option value="basic-settings">Basic Interface Settings</option>
+                                                <!-- REVERT NOTE: remove "disabled" when Access Interface Management is ready -->
                                                 <option value="access-mgmt" disabled>Access Interface Management</option>
                                             </select>
                                         </div>

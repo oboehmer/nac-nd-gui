@@ -26,23 +26,20 @@ function initPreApprovedWorkflow() {
     // Reload fabrics every time (they may have changed), but only bind events once
     loadPreApprovedFabrics();
 
-    if (paInitialized) return;
+    if (paInitialized) {
+        // User navigated back — if a ticket was already looked up, reload the table
+        // (the table is destroyed when navigating away but ticket state is retained)
+        //
+        // REVERT NOTE (multi-use-case): replace the direct loadBasicSettingsTable() call
+        // below with logic that re-shows preApprovedChangeTypeSection and resets the
+        // dropdown to its previous value, then re-fires the appropriate load function.
+        if (paCurrentTicket && !paBasicTable) {
+            loadBasicSettingsTable();
+        }
+        return;
+    }
 
     document.getElementById('preApprovedLookupBtn').addEventListener('click', mockTicketLookup);
-
-    document.getElementById('preApprovedChangeType').addEventListener('change', function () {
-        const val = this.value;
-        // Hide both table sections first
-        document.getElementById('preApprovedBasicSection').classList.add('d-none');
-        document.getElementById('preApprovedAccessSection').classList.add('d-none');
-        document.getElementById('preApprovedActionsSection').classList.add('d-none');
-
-        if (val === 'basic-settings') {
-            loadBasicSettingsTable();
-        } else if (val === 'access-mgmt') {
-            loadAccessMgmtTable();
-        }
-    });
 
     document.getElementById('preApprovedMergeBtn').addEventListener('click', handlePreApprovedMerge);
     document.getElementById('preApprovedDiffBtn').addEventListener('click', showPreApprovedDiff);
@@ -197,7 +194,13 @@ function mockTicketLookup() {
         document.getElementById('preApprovedTicketSection').classList.remove('d-none');
         document.getElementById('preApprovedPendingWarning').classList.add('d-none');
         document.getElementById('preApprovedTicketCardHeader').className = 'card-header bg-success text-white';
-        document.getElementById('preApprovedChangeTypeSection').classList.remove('d-none');
+
+        // REVERT NOTE (multi-use-case): replace the direct loadBasicSettingsTable() call
+        // below with:  document.getElementById('preApprovedChangeTypeSection').classList.remove('d-none');
+        // and restore the change-type addEventListener block in initPreApprovedWorkflow().
+        // The HTML section (id="preApprovedChangeTypeSection") and its dropdown are still
+        // intact in index.html — they just stay hidden while only one use case is active.
+        loadBasicSettingsTable();
 
         // Restore spinner
         document.getElementById('preApprovedLookupSpinner').classList.add('d-none');
