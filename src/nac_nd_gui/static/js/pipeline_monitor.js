@@ -37,12 +37,14 @@ class PipelineMonitor {
         this.changeset = changeset;
         this.onComplete = options.onComplete || null;
         this.label = options.label || `Pipeline — ${changeset}`;
+        this.sinceId = options.sinceId || 0;  // only latch onto pipelines with id > sinceId
 
         this._intervalId = null;
         this._pollCount = 0;
         this._maxWaitPolls = 6;  // 6 × 5s = 30s max wait for pipeline to appear
         this._done = false;
         this._latestStatus = null;
+        this.foundPipelineId = null;  // set once we latch onto a pipeline; readable by caller
 
         this._render('waiting');
     }
@@ -86,7 +88,7 @@ class PipelineMonitor {
         if (this._done) return;
         this._pollCount++;
 
-        fetch(`/api/v1/nac/pipeline-status?changeset=${encodeURIComponent(this.changeset)}`)
+        fetch(`/api/v1/nac/pipeline-status?changeset=${encodeURIComponent(this.changeset)}&since_id=${this.sinceId}`)
             .then(r => r.json())
             .then(json => {
                 if (json.status === 'error') {
@@ -110,6 +112,7 @@ class PipelineMonitor {
                 }
 
                 this._latestStatus = pipeline.status;
+                this.foundPipelineId = pipeline.id;  // record so caller can pass as sinceId to next monitor
                 this._render('live', pipeline);
 
                 if (PipelineMonitor._isTerminal(pipeline.status)) {

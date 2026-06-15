@@ -814,6 +814,11 @@ def get_pipeline_status():
     if not changeset:
         return jsonify({'status': 'error', 'message': 'changeset query parameter is required'}), 400
 
+    # Optional: only return a pipeline with id strictly greater than this value.
+    # Used by the frontend to ensure each PipelineMonitor only latches onto its
+    # own pipeline, not one created by a previous submit on the same branch.
+    since_id = request.args.get('since_id', type=int, default=0)
+
     client = get_nac_client()
     scm_provider = client.scm_provider or ''
     if scm_provider != 'gitlab':
@@ -833,10 +838,10 @@ def get_pipeline_status():
     headers = {'PRIVATE-TOKEN': api_key} if api_key else {}
 
     try:
-        # Fetch pipelines for the branch
+        # Fetch recent pipelines for the branch (sorted newest-first)
         # scm_api_url is already the full API base (e.g. http://gitlab/api/v4)
         pipelines_url = f"{scm_api_url}/projects/{encoded_path}/pipelines"
-        resp = _requests.get(pipelines_url, params={'ref': changeset, 'order_by': 'id', 'sort': 'desc', 'per_page': 5},
+        resp = _requests.get(pipelines_url, params={'ref': changeset, 'order_by': 'id', 'sort': 'desc', 'per_page': 20},
                              headers=headers, timeout=10)
         if not resp.ok:
             return jsonify({
@@ -848,10 +853,28 @@ def get_pipeline_status():
         if not pipelines:
             return jsonify({'status': 'ok', 'pipeline': None})
 
-        latest = pipelines[0]
-        pipeline_id = latest['id']
-        pipeline_status = latest['status']  # pending|running|success|failed|canceled|skipped
-        pipeline_web_url = latest.get('web_url', '')
+        # Find the newest pipeline that is strictly newer than since_id and was
+        # not auto-canceled by GitLab immediately (canceled pipelines that lived
+        # < 5 seconds are supersession artifacts — skip them).
+        target = None
+        for p in pipelines:  # already sorted newest-first
+            if p['id'] <= since_id:
+                break  # everything from here is older, no point continuing
+            # Skip instant-canceled pipelines (GitLab auto-cancels superseded runs)
+            created = p.get('created_at', '')
+            updated = p.get('updated_at', '')
+            if p['status'] == 'canceled' and created and updated and created == updated[:len(created)]:
+                # Same-second cancel — very likely a supersession artifact; skip
+                continue
+            target = p
+            break  # take the newest qualifying pipeline
+
+        if not target:
+            return jsonify({'status': 'ok', 'pipeline': None})
+
+        pipeline_id = target['id']
+        pipeline_status = target['status']
+        pipeline_web_url = target.get('web_url', '')
 
         # Fetch jobs for the latest pipeline
         jobs_url = f"{scm_api_url}/projects/{encoded_path}/pipelines/{pipeline_id}/jobs"
@@ -891,6 +914,70 @@ def get_pipeline_status():
         return jsonify({'status': 'error', 'message': f'Cannot reach GitLab: {exc}'}), 502
     except Exception as exc:
         logger.error(f"pipeline-status error: {exc}", exc_info=True)
+        return jsonify({'status': 'error', 'message': str(exc)}), 500
+
+
+# ---------------------------------------------------------------------------
+# GET /api/v1/nac/pipelines?changeset=<branch>
+# Returns all pipelines for a branch as a summary list (no job details).
+# Used by the "Refresh pipeline state" button.
+# ---------------------------------------------------------------------------
+@nac_bp.route('/pipelines', methods=['GET'])
+def list_pipelines():
+    """
+    List all pipelines for a branch (summary only, no job details).
+    ---
+    tags:
+      - NaC API
+    summary: List GitLab pipelines for a branch
+    parameters:
+      - in: query
+        name: changeset
+        required: true
+        type: string
+    responses:
+      200:
+        description: List of pipelines
+      400:
+        description: Missing changeset or not a GitLab provider
+      502:
+        description: GitLab API error
+    """
+    changeset = request.args.get('changeset', '').strip()
+    if not changeset:
+        return jsonify({'status': 'error', 'message': 'changeset query parameter is required'}), 400
+
+    client = get_nac_client()
+    scm_provider = client.scm_provider or ''
+    if scm_provider != 'gitlab':
+        return jsonify({'status': 'error', 'message': f'Pipeline status is only supported for GitLab (provider: "{scm_provider}")'}), 400
+
+    scm_api_url = (client.scm_api_url or '').rstrip('/')
+    repository_url = client.repository_url or ''
+    api_key = client.api_key or ''
+    encoded_path = repository_url.replace('/', '%2F')
+    headers = {'PRIVATE-TOKEN': api_key} if api_key else {}
+
+    try:
+        resp = _requests.get(
+            f"{scm_api_url}/projects/{encoded_path}/pipelines",
+            params={'ref': changeset, 'order_by': 'id', 'sort': 'desc', 'per_page': 20},
+            headers=headers, timeout=10
+        )
+        if not resp.ok:
+            return jsonify({'status': 'error', 'message': f'GitLab API error {resp.status_code}: {resp.text[:200]}'}), 502
+
+        pipelines = [
+            {'id': p['id'], 'status': p['status'], 'web_url': p.get('web_url', ''),
+             'created_at': p.get('created_at', ''), 'updated_at': p.get('updated_at', '')}
+            for p in resp.json()
+        ]
+        return jsonify({'status': 'ok', 'pipelines': pipelines})
+
+    except _requests.exceptions.ConnectionError as exc:
+        return jsonify({'status': 'error', 'message': f'Cannot reach GitLab: {exc}'}), 502
+    except Exception as exc:
+        logger.error(f"list-pipelines error: {exc}", exc_info=True)
         return jsonify({'status': 'error', 'message': str(exc)}), 500
 
 

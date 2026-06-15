@@ -50,31 +50,66 @@ function initPreApprovedWorkflow() {
     document.getElementById('refreshDescInterfacesBtn').addEventListener('click', loadDescriptionChangeTable);
     document.getElementById('refreshAccessInterfacesBtn').addEventListener('click', loadAccessMgmtTable);
 
-    // Event delegation for VLAN inputs rendered inside Tabulator cells
-    document.addEventListener('input', function (e) {
+    // Event delegation for VLAN inputs rendered inside Tabulator cells.
+    //
+    // IMPORTANT: use 'change' (fires on blur/enter, after user leaves field) NOT
+    // 'input' (fires on every keystroke) for row.update() calls.
+    // row.update() causes Tabulator to re-render the cell, which destroys and
+    // recreates the <input> element, immediately stealing focus mid-keystroke.
+    // On 'input' we only toggle the dirty CSS class without touching Tabulator data.
+    // On 'change' we sync the final value into Tabulator and re-evaluate dirty state.
+
+    function _syncVlanInput(target) {
         if (!paAccessTable) return;
+        const rowId = target.getAttribute('data-row-id');
+        if (!rowId) return;
+        const rows = paAccessTable.getRows();
+        for (const row of rows) {
+            const data = row.getData();
+            const id = `${data.name}_${data.switch_hostname}`;
+            if (id === rowId) {
+                if (target.classList.contains('pa-access-vlan-input')) {
+                    row.update({ access_vlan: target.value });
+                } else if (target.classList.contains('pa-native-vlan-input')) {
+                    row.update({ native_vlan: target.value });
+                } else if (target.classList.contains('pa-trunk-vlans-input')) {
+                    row.update({ trunk_vlans_text: target.value });
+                }
+                markAccessRowDirty(row);
+                break;
+            }
+        }
+    }
+
+    // 'input': only update the dirty highlight — no row.update(), no re-render
+    document.addEventListener('input', function (e) {
         const target = e.target;
         if (target.classList.contains('pa-access-vlan-input') ||
             target.classList.contains('pa-native-vlan-input') ||
             target.classList.contains('pa-trunk-vlans-input')) {
+            if (!paAccessTable) return;
             const rowId = target.getAttribute('data-row-id');
             if (!rowId) return;
             const rows = paAccessTable.getRows();
             for (const row of rows) {
                 const data = row.getData();
-                const id = `${data.name}_${data.switch_hostname}`;
-                if (id === rowId) {
-                    if (target.classList.contains('pa-access-vlan-input')) {
-                        row.update({ access_vlan: target.value });
-                    } else if (target.classList.contains('pa-native-vlan-input')) {
-                        row.update({ native_vlan: target.value });
-                    } else if (target.classList.contains('pa-trunk-vlans-input')) {
-                        row.update({ trunk_vlans_text: target.value });
-                    }
-                    markAccessRowDirty(row);
+                if (`${data.name}_${data.switch_hostname}` === rowId) {
+                    // Temporarily patch data for dirty check without triggering re-render
+                    const orig = row.getData()._originalData;
+                    if (orig) row.getElement().classList.toggle('pa-row-dirty', true);
                     break;
                 }
             }
+        }
+    });
+
+    // 'change': sync value into Tabulator and properly evaluate dirty state
+    document.addEventListener('change', function (e) {
+        const target = e.target;
+        if (target.classList.contains('pa-access-vlan-input') ||
+            target.classList.contains('pa-native-vlan-input') ||
+            target.classList.contains('pa-trunk-vlans-input')) {
+            _syncVlanInput(target);
         }
     });
 
@@ -217,25 +252,8 @@ function loadDescriptionChangeTable() {
                         editor: 'input',
                         editorParams: { elementAttributes: { maxlength: 256 } },
                         minWidth: 250,
-                        cellEdited: function (cell) {
-                            const row = cell.getRow();
-                            const data = row.getData();
-                            if (data.newDescription !== (data.description || '')) {
-                                row.getElement().classList.add('pa-row-dirty');
-                            } else {
-                                row.getElement().classList.remove('pa-row-dirty');
-                            }
-                        }
                     }
                 ],
-                rowFormatter: function (row) {
-                    const data = row.getData();
-                    if (data.newDescription !== (data.description || '')) {
-                        row.getElement().classList.add('pa-row-dirty');
-                    } else {
-                        row.getElement().classList.remove('pa-row-dirty');
-                    }
-                }
             }));
 
             document.getElementById('descInterfacesLoading').classList.add('d-none');
@@ -497,7 +515,7 @@ function handlePreApprovedMerge() {
         .then(json => {
             if (json.status === 'success' || json.status === 'ok') {
                 responseEl.className = 'alert alert-success';
-                responseEl.innerHTML = `<i class="bi bi-check-circle me-2"></i><strong>Changes submitted!</strong> Branch <code>${escapeHtml(changeset)}</code> created — watching for pipeline…`;
+                responseEl.innerHTML = `<i class="bi bi-check-circle me-2"></i><strong>Changes submitted!</strong> Branch <code>${escapeHtml(paCurrentBranch)}</code> created/updated — watching for pipeline…`;
                 responseEl.classList.remove('d-none');
 
                 // Launch a new pipeline monitor card
@@ -537,6 +555,12 @@ function _launchPipelineCard(changeset) {
     // Stop all previous monitors (they are already done or collapsed)
     paPipelineMonitors.forEach(m => m.stop());
 
+    // sinceId: the pipeline ID found by the previous monitor.
+    // The new monitor will only latch onto a pipeline with a strictly higher ID,
+    // preventing it from re-using a pipeline created by a previous submit.
+    const prevMonitor = paPipelineMonitors.length > 0 ? paPipelineMonitors[paPipelineMonitors.length - 1] : null;
+    const sinceId = prevMonitor ? (prevMonitor.foundPipelineId || 0) : 0;
+
     const cardIndex = paPipelineMonitors.length + 1;
     const cardEl = document.createElement('div');
     cardEl.className = 'pm-card-wrapper mb-2';
@@ -544,6 +568,7 @@ function _launchPipelineCard(changeset) {
 
     const monitor = new PipelineMonitor(cardEl, paCurrentBranch, {
         label: `Pipeline #${cardIndex}`,
+        sinceId,
         onComplete: function (status) {
             paLatestPipelineStatus = status;
             _updateApplyButton();
@@ -559,6 +584,100 @@ function _launchPipelineCard(changeset) {
         applySection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         _startChangeWindowCountdown();
     }
+}
+
+// ---------------------------------------------------------------------------
+// Refresh pipeline state — fetches all pipelines for the branch and rebuilds
+// the pipeline list, re-attaching a live monitor to any still-running pipeline.
+// ---------------------------------------------------------------------------
+function refreshPipelineState() {
+    if (!paCurrentBranch) return;
+
+    const btn = document.getElementById('paRefreshPipelinesBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Refreshing…';
+    }
+
+    fetch(`/api/v1/nac/pipelines?changeset=${encodeURIComponent(paCurrentBranch)}`)
+        .then(r => r.json())
+        .then(json => {
+            if (json.status !== 'ok') throw new Error(json.message || 'Unknown error');
+
+            const pipelines = json.pipelines || [];  // newest-first from API
+
+            // Stop all existing monitors
+            paPipelineMonitors.forEach(m => m.stop());
+            paPipelineMonitors = [];
+
+            const pipelineList = document.getElementById('preApprovedPipelineList');
+            pipelineList.innerHTML = '';
+
+            if (pipelines.length === 0) {
+                pipelineList.innerHTML = '<div class="text-muted small p-2">No pipelines found for this branch.</div>';
+                return;
+            }
+
+            // Render oldest-first so the list reads top-to-bottom chronologically
+            const ordered = [...pipelines].reverse();
+            const terminal = ['success', 'failed', 'canceled', 'skipped'];
+
+            ordered.forEach((p, idx) => {
+                const isLast = idx === ordered.length - 1;
+                const cardEl = document.createElement('div');
+                cardEl.className = 'pm-card-wrapper mb-2';
+                pipelineList.appendChild(cardEl);
+
+                const label = `Pipeline #${idx + 1}`;
+
+                if (!isLast || terminal.includes(p.status)) {
+                    // Historical or already-terminal: render as collapsed summary
+                    const badge = PipelineMonitor._statusBadge(p.status);
+                    const link = p.web_url
+                        ? `<a href="${escapeHtml(p.web_url)}" target="_blank" rel="noopener" class="pm-pipeline-link ms-2"><i class="bi bi-box-arrow-up-right"></i></a>`
+                        : '';
+                    cardEl.innerHTML = `
+                        <div class="pm-card pm-card-collapsed d-flex justify-content-between align-items-center px-3 py-2">
+                            <span class="fw-semibold text-muted small">
+                                <i class="bi bi-git me-2"></i>${escapeHtml(label)}${link}
+                            </span>
+                            <span>${badge}</span>
+                        </div>`;
+
+                    // Update latest status from the last pipeline in the list
+                    if (isLast) {
+                        paLatestPipelineStatus = p.status;
+                        _updateApplyButton();
+                    }
+                } else {
+                    // Latest pipeline is still running — attach a live monitor
+                    // sinceId = previous pipeline's id so it latches onto exactly this one
+                    const prevId = idx > 0 ? ordered[idx - 1].id : 0;
+                    const monitor = new PipelineMonitor(cardEl, paCurrentBranch, {
+                        label,
+                        sinceId: prevId,
+                        onComplete: function (status) {
+                            paLatestPipelineStatus = status;
+                            _updateApplyButton();
+                        }
+                    });
+                    paPipelineMonitors.push(monitor);
+                    monitor.start();
+                }
+            });
+        })
+        .catch(err => {
+            const pipelineList = document.getElementById('preApprovedPipelineList');
+            pipelineList.innerHTML = `<div class="alert alert-danger py-2 m-2 small">
+                <i class="bi bi-exclamation-triangle me-2"></i>Refresh failed: ${escapeHtml(err.message)}
+            </div>`;
+        })
+        .finally(() => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>Refresh';
+            }
+        });
 }
 
 // ---------------------------------------------------------------------------

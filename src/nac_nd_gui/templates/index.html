@@ -909,10 +909,6 @@
                                         </button>
                                     </div>
                                     <div class="card-body">
-                                        <div class="alert alert-info py-2 mb-3">
-                                            <i class="bi bi-info-circle me-2"></i>
-                                            Edit the <strong>New Description</strong> cell inline. Modified rows are highlighted in yellow and will be included in the merge. Only changed rows are submitted.
-                                        </div>
                                         <div id="descInterfacesTableContainer">
                                             <div class="text-center py-4" id="descInterfacesLoading">
                                                 <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
@@ -928,7 +924,12 @@
                             <div id="preApprovedAccessSection" class="d-none workflow-section">
                                 <div class="card shadow-sm mb-4">
                                     <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0"><i class="bi bi-hdd-network me-2"></i>Access Interface Management</h5>
+                                        <h5 class="mb-0">
+                                            <i class="bi bi-hdd-network me-2"></i>Access Interface Management
+                                            <span class="badge bg-warning text-dark ms-2 fw-normal" style="font-size:0.7em;">
+                                                <i class="bi bi-exclamation-triangle me-1"></i>Not fully tested
+                                            </span>
+                                        </h5>
                                         <button class="btn btn-light btn-sm" id="refreshAccessInterfacesBtn">
                                             <i class="bi bi-arrow-clockwise me-1"></i>Refresh
                                         </button>
@@ -974,7 +975,12 @@
                                 <div class="card shadow-sm mb-4">
                                     <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
                                         <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>GitLab CI Pipeline</h5>
-                                        <small class="text-white-50">Branch: <code id="paPipelineBranchLabel" class="text-white-50"></code></small>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <small class="text-white-50">Branch: <code id="paPipelineBranchLabel" class="text-white-50"></code></small>
+                                            <button class="btn btn-outline-light btn-sm" id="paRefreshPipelinesBtn" onclick="refreshPipelineState()">
+                                                <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="card-body p-2">
                                         <div id="preApprovedPipelineList"></div>
