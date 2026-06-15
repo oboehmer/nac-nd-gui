@@ -4,9 +4,9 @@
 // Module-level state
 // ---------------------------------------------------------------------------
 let paOriginalInterfaces = [];   // raw data from /api/v1/nac/interfaces
-let paDescTable = null;          // Tabulator instance for description table
+let paBasicTable = null;         // Tabulator instance for basic settings table
 let paAccessTable = null;        // Tabulator instance for access mgmt table
-let paActiveChangeType = null;   // 'description-change' | 'access-mgmt'
+let paActiveChangeType = null;   // 'basic-settings' | 'access-mgmt'
 let paInitialized = false;       // guard against double-init on nav
 let paCurrentTicket = '';        // current ticket number (normalized)
 let paCurrentChangeset = '';     // changeset value sent to NaC API (e.g. 'inc0012345-20260614120000')
@@ -33,12 +33,12 @@ function initPreApprovedWorkflow() {
     document.getElementById('preApprovedChangeType').addEventListener('change', function () {
         const val = this.value;
         // Hide both table sections first
-        document.getElementById('preApprovedDescSection').classList.add('d-none');
+        document.getElementById('preApprovedBasicSection').classList.add('d-none');
         document.getElementById('preApprovedAccessSection').classList.add('d-none');
         document.getElementById('preApprovedActionsSection').classList.add('d-none');
 
-        if (val === 'description-change') {
-            loadDescriptionChangeTable();
+        if (val === 'basic-settings') {
+            loadBasicSettingsTable();
         } else if (val === 'access-mgmt') {
             loadAccessMgmtTable();
         }
@@ -47,7 +47,7 @@ function initPreApprovedWorkflow() {
     document.getElementById('preApprovedMergeBtn').addEventListener('click', handlePreApprovedMerge);
     document.getElementById('preApprovedDiffBtn').addEventListener('click', showPreApprovedDiff);
     document.getElementById('preApprovedResetBtn').addEventListener('click', resetPreApprovedWorkflow);
-    document.getElementById('refreshDescInterfacesBtn').addEventListener('click', loadDescriptionChangeTable);
+    document.getElementById('refreshBasicInterfacesBtn').addEventListener('click', loadBasicSettingsTable);
     document.getElementById('refreshAccessInterfacesBtn').addEventListener('click', loadAccessMgmtTable);
 
     // Event delegation for VLAN inputs rendered inside Tabulator cells.
@@ -207,16 +207,16 @@ function mockTicketLookup() {
 }
 
 // ---------------------------------------------------------------------------
-// Section 4a: Interface Description Change table
+// Section 4a: Basic Interface Settings table
 // ---------------------------------------------------------------------------
-function loadDescriptionChangeTable() {
-    document.getElementById('preApprovedDescSection').classList.remove('d-none');
-    document.getElementById('descInterfacesLoading').classList.remove('d-none');
-    document.getElementById('descInterfacesTable').innerHTML = '';
+function loadBasicSettingsTable() {
+    document.getElementById('preApprovedBasicSection').classList.remove('d-none');
+    document.getElementById('basicInterfacesLoading').classList.remove('d-none');
+    document.getElementById('basicInterfacesTable').innerHTML = '';
 
-    if (paDescTable) {
-        paDescTable.destroy();
-        paDescTable = null;
+    if (paBasicTable) {
+        paBasicTable.destroy();
+        paBasicTable = null;
     }
 
     fetch('/api/v1/nac/interfaces')
@@ -228,41 +228,68 @@ function loadDescriptionChangeTable() {
             const rawData = json.data;
             paOriginalInterfaces = rawData;
 
-            // Add newDescription tracking field per row
+            // Store original data per row for dirty detection; edit description in-place
             const transformed = rawData.map(row => Object.assign({}, row, {
-                newDescription: row.description || ''
+                _originalData: Object.assign({}, row)
             }));
 
             const commonConfig = {
                 pagination: true,
                 paginationSize: 15,
                 layout: 'fitColumns',
+                variableHeight: true,
                 placeholder: 'No interfaces found'
             };
 
-            paDescTable = new Tabulator('#descInterfacesTable', Object.assign({}, commonConfig, {
+            paBasicTable = new Tabulator('#basicInterfacesTable', Object.assign({}, commonConfig, {
                 data: transformed,
                 columns: [
                     { title: 'Switch', field: 'switch_hostname', sorter: 'string', minWidth: 150 },
                     { title: 'Interface', field: 'name', sorter: 'string', minWidth: 120 },
-                    { title: 'Current Description', field: 'description', sorter: 'string', minWidth: 200 },
                     {
-                        title: 'New Description',
-                        field: 'newDescription',
+                        title: 'Enabled',
+                        field: 'enabled',
+                        sorter: 'boolean',
+                        width: 90,
+                        hozAlign: 'center',
+                        formatter: function (cell) {
+                            const checked = cell.getValue() ? 'checked' : '';
+                            // padding-left:0 + margin-left:0 neutralise Bootstrap's form-check
+                            // indent so the toggle sits centred in the cell
+                            return `<div class="form-check form-switch mb-0 d-flex justify-content-center" style="padding-left:0">
+                                <input class="form-check-input mt-0" type="checkbox" role="switch" style="margin-left:0" ${checked}>
+                            </div>`;
+                        },
+                        cellClick: function (e, cell) {
+                            if (e.target.tagName === 'INPUT') {
+                                cell.setValue(e.target.checked, true);
+                                markBasicRowDirty(cell.getRow());
+                            }
+                        }
+                    },
+                    {
+                        title: 'Description',
+                        field: 'description',
+                        widthGrow: 3,
+                        minWidth: 300,
                         editor: 'input',
                         editorParams: { elementAttributes: { maxlength: 256 } },
-                        minWidth: 250,
+                        formatter: function (cell) {
+                            const val = cell.getValue() || '';
+                            return `<div style="white-space:normal;word-break:break-word">${escapeHtml(val)}</div>`;
+                        },
+                        cellEdited: function (cell) { markBasicRowDirty(cell.getRow()); }
                     }
                 ],
             }));
 
-            document.getElementById('descInterfacesLoading').classList.add('d-none');
+            document.getElementById('basicInterfacesLoading').classList.add('d-none');
             document.getElementById('preApprovedActionsSection').classList.remove('d-none');
-            paActiveChangeType = 'description-change';
+            paActiveChangeType = 'basic-settings';
         })
         .catch(err => {
-            document.getElementById('descInterfacesLoading').classList.add('d-none');
-            document.getElementById('descInterfacesTable').innerHTML =
+            document.getElementById('basicInterfacesLoading').classList.add('d-none');
+            document.getElementById('basicInterfacesTable').innerHTML =
                 `<div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i>Failed to load interfaces: ${err.message}</div>`;
         });
 }
@@ -375,6 +402,21 @@ function loadAccessMgmtTable() {
 }
 
 // ---------------------------------------------------------------------------
+// Helper: mark a basic settings row dirty if enabled or description changed
+// ---------------------------------------------------------------------------
+function markBasicRowDirty(row) {
+    const data = row.getData();
+    const orig = data._originalData;
+    if (!orig) return;
+
+    const isDirty =
+        String(data.enabled) !== String(orig.enabled) ||
+        (data.description || '') !== (orig.description || '');
+
+    row.getElement().classList.toggle('pa-row-dirty', isDirty);
+}
+
+// ---------------------------------------------------------------------------
 // Helper: mark an access table row dirty if anything changed vs _originalData
 // ---------------------------------------------------------------------------
 function markAccessRowDirty(row) {
@@ -437,9 +479,14 @@ function parseTrunkVlans(text) {
 // Collect dirty rows for merge / diff
 // ---------------------------------------------------------------------------
 function collectDirtyRows() {
-    if (paActiveChangeType === 'description-change') {
-        if (!paDescTable) return [];
-        return paDescTable.getData().filter(r => (r.newDescription || '') !== (r.description || ''));
+    if (paActiveChangeType === 'basic-settings') {
+        if (!paBasicTable) return [];
+        return paBasicTable.getData().filter(r => {
+            const orig = r._originalData;
+            if (!orig) return false;
+            return String(r.enabled) !== String(orig.enabled) ||
+                (r.description || '') !== (orig.description || '');
+        });
     } else if (paActiveChangeType === 'access-mgmt') {
         if (!paAccessTable) return [];
         return paAccessTable.getData().filter(r => {
@@ -475,8 +522,8 @@ function handlePreApprovedMerge() {
         const sw = row.switch_hostname;
         if (!switchMap[sw]) switchMap[sw] = [];
 
-        if (paActiveChangeType === 'description-change') {
-            switchMap[sw].push({ name: row.name, mode: row.mode, description: row.newDescription });
+        if (paActiveChangeType === 'basic-settings') {
+            switchMap[sw].push({ name: row.name, enabled: row.enabled, description: row.description || '' });
         } else {
             const iface = { name: row.name, mode: row.mode };
             if (row.enabled !== undefined) iface.enabled = row.enabled;
@@ -494,8 +541,8 @@ function handlePreApprovedMerge() {
     const data = Object.entries(switchMap).map(([name, interfaces]) => ({ name, interfaces }));
 
     const changeset = paCurrentChangeset;
-    const changeTypeName = paActiveChangeType === 'description-change'
-        ? 'Interface Description Change'
+    const changeTypeName = paActiveChangeType === 'basic-settings'
+        ? 'Basic Interface Settings'
         : 'Access Interface Management';
     const apply_message = `Pre-Approved ${changeTypeName} via ${paCurrentTicket} (${dirtyRows.length} interface(s) changed)`;
 
@@ -751,8 +798,8 @@ function handleApplyToProduction() {
 
     const applyBtn = document.getElementById('paApplyToProductionBtn');
     const applyResponseEl = document.getElementById('paApplyResponse');
-    const changeTypeName = paActiveChangeType === 'description-change'
-        ? 'Interface Description Change'
+    const changeTypeName = paActiveChangeType === 'basic-settings'
+        ? 'Basic Interface Settings'
         : 'Access Interface Management';
     const apply_message = `Pre-Approved ${changeTypeName} via ${paCurrentTicket}`;
 
@@ -804,17 +851,27 @@ function showPreApprovedDiff() {
     } else {
         for (const row of dirtyRows) {
             let beforeObj, afterObj;
-            if (paActiveChangeType === 'description-change') {
+            if (paActiveChangeType === 'basic-settings') {
+                const orig = row._originalData || {};
                 beforeObj = {
-                    name: row.name,
-                    mode: row.mode || '',
-                    description: row.description || ''
+                    name: orig.name || row.name,
+                    enabled: orig.enabled,
+                    description: orig.description || ''
                 };
                 afterObj = {
                     name: row.name,
-                    mode: row.mode || '',
-                    description: row.newDescription || ''
+                    enabled: row.enabled,
+                    description: row.description || ''
                 };
+                // Remove unchanged fields from diff to keep it readable
+                if (String(afterObj.enabled) === String(beforeObj.enabled)) {
+                    delete beforeObj.enabled;
+                    delete afterObj.enabled;
+                }
+                if (afterObj.description === beforeObj.description) {
+                    delete beforeObj.description;
+                    delete afterObj.description;
+                }
             } else {
                 const orig = row._originalData || {};
                 beforeObj = {
@@ -904,7 +961,7 @@ function resetPreApprovedWorkflow() {
     const hideIds = [
         'preApprovedTicketSection',
         'preApprovedChangeTypeSection',
-        'preApprovedDescSection',
+        'preApprovedBasicSection',
         'preApprovedAccessSection',
         'preApprovedActionsSection',
         'preApprovedPendingWarning',
@@ -946,9 +1003,9 @@ function resetPreApprovedWorkflow() {
         applyResponseEl.innerHTML = '';
     }
 
-    if (paDescTable) {
-        paDescTable.destroy();
-        paDescTable = null;
+    if (paBasicTable) {
+        paBasicTable.destroy();
+        paBasicTable = null;
     }
     if (paAccessTable) {
         paAccessTable.destroy();
