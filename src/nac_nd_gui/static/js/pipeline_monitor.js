@@ -36,7 +36,7 @@ class PipelineMonitor {
         this.containerEl = containerEl;
         this.changeset = changeset;
         this.onComplete = options.onComplete || null;
-        this.label = options.label || `Pipeline — ${changeset}`;
+        this.label = options.label || `Merge Pipeline — ${changeset}`;
         this.sinceId = options.sinceId || 0;  // only latch onto pipelines with id > sinceId
 
         this._intervalId = null;
@@ -103,7 +103,7 @@ class PipelineMonitor {
                 if (!pipeline) {
                     // No pipeline yet — show skeleton until timeout
                     if (this._pollCount >= this._maxWaitPolls) {
-                        this._renderError('No pipeline found after 30 seconds. Is a GitLab CI trigger configured for this branch?');
+                        this._renderError('No merge pipeline found after 30 seconds. Is a GitLab CI trigger configured for this branch?');
                         this.stop();
                         this._done = true;
                     }
@@ -136,7 +136,7 @@ class PipelineMonitor {
                     <div class="pm-card-header">
                         <span><i class="bi bi-git me-2"></i>${escapeHtml(this.label)}</span>
                         <span class="pm-badge pm-badge-waiting">
-                            <span class="spinner-border spinner-border-sm me-1" role="status"></span>Waiting for pipeline…
+                            <span class="spinner-border spinner-border-sm me-1" role="status"></span>Waiting for merge pipeline…
                         </span>
                     </div>
                     <div class="pm-skeleton-body">

@@ -565,7 +565,7 @@ function handlePreApprovedMerge() {
         .then(json => {
             if (json.status === 'success' || json.status === 'ok') {
                 responseEl.className = 'alert alert-success';
-                responseEl.innerHTML = `<i class="bi bi-check-circle me-2"></i><strong>Changes submitted!</strong> Branch <code>${escapeHtml(paCurrentBranch)}</code> created/updated — watching for pipeline…`;
+                responseEl.innerHTML = `<i class="bi bi-check-circle me-2"></i><strong>Changes submitted!</strong> Branch <code>${escapeHtml(paCurrentBranch)}</code> created/updated — watching for merge pipeline…`;
                 responseEl.classList.remove('d-none');
 
                 // Launch a new pipeline monitor card
@@ -617,7 +617,7 @@ function _launchPipelineCard(changeset) {
     pipelineList.appendChild(cardEl);
 
     const monitor = new PipelineMonitor(cardEl, paCurrentBranch, {
-        label: `Pipeline #${cardIndex}`,
+        label: `Merge Pipeline #${cardIndex}`,
         sinceId,
         onComplete: function (status) {
             paLatestPipelineStatus = status;
@@ -664,7 +664,7 @@ function refreshPipelineState() {
             pipelineList.innerHTML = '';
 
             if (pipelines.length === 0) {
-                pipelineList.innerHTML = '<div class="text-muted small p-2">No pipelines found for this branch.</div>';
+                pipelineList.innerHTML = '<div class="text-muted small p-2">No merge pipelines found for this branch.</div>';
                 return;
             }
 
@@ -678,7 +678,7 @@ function refreshPipelineState() {
                 cardEl.className = 'pm-card-wrapper mb-2';
                 pipelineList.appendChild(cardEl);
 
-                const label = `Pipeline #${idx + 1}`;
+                const label = `Merge Pipeline #${idx + 1}`;
 
                 if (!isLast || terminal.includes(p.status)) {
                     // Historical or already-terminal: render as collapsed summary
@@ -768,13 +768,13 @@ function _updateApplyButton() {
     const pipelineHintEl = document.getElementById('paApplyPipelineHint');
     if (pipelineHintEl) {
         if (pipelineOk) {
-            pipelineHintEl.innerHTML = '<i class="bi bi-check-circle text-success me-1"></i>Latest pipeline passed';
+            pipelineHintEl.innerHTML = '<i class="bi bi-check-circle text-success me-1"></i>Latest merge pipeline passed';
         } else if (paLatestPipelineStatus === 'failed') {
-            pipelineHintEl.innerHTML = '<i class="bi bi-x-circle text-danger me-1"></i>Latest pipeline failed — fix and re-submit';
+            pipelineHintEl.innerHTML = '<i class="bi bi-x-circle text-danger me-1"></i>Latest merge pipeline failed — fix and re-submit';
         } else if (paLatestPipelineStatus) {
-            pipelineHintEl.innerHTML = `<i class="bi bi-hourglass-split text-warning me-1"></i>Pipeline ${escapeHtml(paLatestPipelineStatus)}`;
+            pipelineHintEl.innerHTML = `<i class="bi bi-hourglass-split text-warning me-1"></i>Merge pipeline ${escapeHtml(paLatestPipelineStatus)}`;
         } else {
-            pipelineHintEl.innerHTML = '<i class="bi bi-hourglass-split text-warning me-1"></i>Waiting for pipeline to complete…';
+            pipelineHintEl.innerHTML = '<i class="bi bi-hourglass-split text-warning me-1"></i>Waiting for merge pipeline to complete…';
         }
     }
 

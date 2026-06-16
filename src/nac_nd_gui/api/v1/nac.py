@@ -841,7 +841,9 @@ def get_pipeline_status():
         # Fetch recent pipelines for the branch (sorted newest-first)
         # scm_api_url is already the full API base (e.g. http://gitlab/api/v4)
         pipelines_url = f"{scm_api_url}/projects/{encoded_path}/pipelines"
-        resp = _requests.get(pipelines_url, params={'ref': changeset, 'order_by': 'id', 'sort': 'desc', 'per_page': 20},
+        resp = _requests.get(pipelines_url,
+                             params={'ref': changeset, 'source': 'merge_request_event',
+                                     'order_by': 'id', 'sort': 'desc', 'per_page': 20},
                              headers=headers, timeout=10)
         if not resp.ok:
             return jsonify({
@@ -961,7 +963,8 @@ def list_pipelines():
     try:
         resp = _requests.get(
             f"{scm_api_url}/projects/{encoded_path}/pipelines",
-            params={'ref': changeset, 'order_by': 'id', 'sort': 'desc', 'per_page': 20},
+            params={'ref': changeset, 'source': 'merge_request_event',
+                    'order_by': 'id', 'sort': 'desc', 'per_page': 20},
             headers=headers, timeout=10
         )
         if not resp.ok:
