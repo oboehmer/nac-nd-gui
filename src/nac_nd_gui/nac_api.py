@@ -1085,6 +1085,7 @@ class NacApiClient:
         response = self.session.post(
             f"{self.api_url}{endpoint}",
             json=payload,
+            verify=False,
         )
         response_data = (response.json() if response.content else None) or {}
         _nacapi_print("POST", f"{self.api_url}{endpoint}", status=response.status_code, response_body=response_data)
