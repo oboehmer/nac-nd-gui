@@ -526,7 +526,15 @@ function handlePreApprovedMerge() {
         if (!switchMap[sw]) switchMap[sw] = [];
 
         if (paActiveChangeType === 'basic-settings') {
-            switchMap[sw].push({ name: row.name, enabled: row.enabled, description: row.description || '' });
+            const orig = row._originalData || {};
+            const iface = { name: row.name };
+            if (String(row.enabled) !== String(orig.enabled)) {
+                iface.enabled = row.enabled;
+            }
+            if ((row.description || '') !== (orig.description || '')) {
+                iface.description = row.description || '';
+            }
+            switchMap[sw].push(iface);
         } else {
             const iface = { name: row.name, mode: row.mode };
             if (row.enabled !== undefined) iface.enabled = row.enabled;
