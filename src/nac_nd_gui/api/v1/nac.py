@@ -660,7 +660,7 @@ def merge_interfaces():
         Accepts a list of switch objects each containing the modified interfaces.
         Internally decomposes the changes into a single batch operation, targeting each
         interface individually via selector paths
-        (e.g. vxlan/topology/switches/name=LEAF1/interfaces/name=ethernet1%2F1).
+        (e.g. vxlan/topology/switches/name=LEAF1/interfaces/name=ethernet1~11).
     parameters:
       - in: body
         name: body
@@ -737,9 +737,9 @@ def merge_interfaces():
             switch_name = switch.get('name', '')
             for iface in switch.get('interfaces', []):
                 iface_name = iface.get('name', '')
-                # Slashes in interface names (e.g. ethernet1/1) must be percent-encoded
-                # so they are treated as part of the selector value, not path separators.
-                encoded_name = iface_name.replace('/', '%2F')
+                # Slashes in interface names (e.g. ethernet1/1) must be JSON Pointer-encoded
+                # (~1) so they are treated as part of the selector value, not path separators.
+                encoded_name = iface_name.replace('/', '~1')
                 changes.append({
                     "type": "merge",
                     "path": f"vxlan/topology/switches/name={switch_name}/interfaces/name={encoded_name}",
