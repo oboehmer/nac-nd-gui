@@ -737,9 +737,10 @@ def merge_interfaces():
             switch_name = switch.get('name', '')
             for iface in switch.get('interfaces', []):
                 iface_name = iface.get('name', '')
-                # Slashes in interface names (e.g. ethernet1/1) must be JSON Pointer-encoded
-                # (~1) so they are treated as part of the selector value, not path separators.
-                encoded_name = iface_name.replace('/', '~1')
+                # Interface names (e.g. ethernet1/1) must be JSON Pointer-encoded per
+                # RFC 6901 so they are treated as part of the selector value, not path
+                # separators. Order matters: encode '~' as '~0' first, then '/' as '~1'.
+                encoded_name = iface_name.replace('~', '~0').replace('/', '~1')
                 changes.append({
                     "type": "merge",
                     "path": f"vxlan/topology/switches/name={switch_name}/interfaces/name={encoded_name}",
