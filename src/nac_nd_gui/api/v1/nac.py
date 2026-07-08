@@ -1047,3 +1047,501 @@ def apply_changeset():
         logger.error(f"apply changeset error: {exc}", exc_info=True)
         return jsonify({'status': 'error', 'message': str(exc)}), 500
 
+
+# ---------------------------------------------------------------------------
+# Git Revert Workflow Endpoints (GitLab API direct)
+# ---------------------------------------------------------------------------
+
+@nac_bp.route('/commits', methods=['GET'])
+def list_commits():
+    """
+    List recent commits on main branch with pagination.
+    ---
+    tags:
+      - NaC API
+    summary: List recent commits on main
+    description: Retrieves recent commits from the main branch using GitLab API with pagination support
+    parameters:
+      - in: query
+        name: page
+        type: integer
+        default: 1
+        description: Page number for pagination
+      - in: query
+        name: per_page
+        type: integer
+        default: 15
+        description: Number of commits per page
+    responses:
+      200:
+        description: List of commits retrieved successfully
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: ok
+            commits:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  short_id:
+                    type: string
+                  title:
+                    type: string
+                  message:
+                    type: string
+                  author_name:
+                    type: string
+                  author_email:
+                    type: string
+                  authored_date:
+                    type: string
+                  committed_date:
+                    type: string
+            current_page:
+              type: integer
+            total_pages:
+              type: integer
+      400:
+        description: Not a GitLab provider
+      502:
+        description: GitLab API error
+    """
+    page = request.args.get('page', type=int, default=1)
+    per_page = request.args.get('per_page', type=int, default=15)
+
+    client = get_nac_client()
+    scm_provider = client.scm_provider or ''
+    if scm_provider != 'gitlab':
+        return jsonify({
+            'status': 'error',
+            'message': f'Commits endpoint is only supported for GitLab (configured provider: "{scm_provider}")'
+        }), 400
+
+    scm_api_url = (client.scm_api_url or '').rstrip('/')
+    repository_url = client.repository_url or ''
+    api_key = client.api_key or ''
+
+    if not scm_api_url or not repository_url:
+        return jsonify({'status': 'error', 'message': 'GitLab scm_api_url or repository_url not configured'}), 400
+
+    encoded_path = repository_url.replace('/', '%2F')
+    headers = {'PRIVATE-TOKEN': api_key} if api_key else {}
+
+    try:
+        commits_url = f"{scm_api_url}/projects/{encoded_path}/repository/commits"
+        resp = _requests.get(
+            commits_url,
+            params={'ref_name': 'main', 'page': page, 'per_page': per_page},
+            headers=headers,
+            timeout=10
+        )
+
+        if not resp.ok:
+            return jsonify({
+                'status': 'error',
+                'message': f'GitLab API error {resp.status_code}: {resp.text[:200]}'
+            }), 502
+
+        commits = resp.json()
+
+        # Extract pagination headers from GitLab response
+        current_page = int(resp.headers.get('X-Page', page))
+        total_pages = int(resp.headers.get('X-Total-Pages', 0))
+        next_page = resp.headers.get('X-Next-Page', '').strip()
+        has_next_page = bool(next_page) or (total_pages > 0 and current_page < total_pages)
+
+        # If GitLab doesn't return X-Total-Pages, estimate from commit count
+        if total_pages == 0:
+            total_pages = current_page + (1 if len(commits) == per_page else 0)
+
+        return jsonify({
+            'status': 'ok',
+            'commits': commits,
+            'current_page': current_page,
+            'total_pages': total_pages,
+            'has_next_page': has_next_page,
+        })
+
+    except _requests.exceptions.ConnectionError as exc:
+        return jsonify({'status': 'error', 'message': f'Cannot reach GitLab: {exc}'}), 502
+    except Exception as exc:
+        logger.error(f"list commits error: {exc}", exc_info=True)
+        return jsonify({'status': 'error', 'message': str(exc)}), 500
+
+
+@nac_bp.route('/commits/<sha>/diff', methods=['GET'])
+def get_commit_diff(sha):
+    """
+    Get the diff for a specific commit.
+    ---
+    tags:
+      - NaC API
+    summary: Get commit diff
+    description: Retrieves the unified diff for a specific commit from GitLab
+    parameters:
+      - in: path
+        name: sha
+        type: string
+        required: true
+        description: Commit SHA to retrieve diff for
+    responses:
+      200:
+        description: Commit diff retrieved successfully
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: ok
+            diffs:
+              type: array
+              items:
+                type: object
+                properties:
+                  old_path:
+                    type: string
+                  new_path:
+                    type: string
+                  diff:
+                    type: string
+                  new_file:
+                    type: boolean
+                  renamed_file:
+                    type: boolean
+                  deleted_file:
+                    type: boolean
+      400:
+        description: Not a GitLab provider
+      502:
+        description: GitLab API error
+    """
+    client = get_nac_client()
+    scm_provider = client.scm_provider or ''
+    if scm_provider != 'gitlab':
+        return jsonify({
+            'status': 'error',
+            'message': f'Commit diff endpoint is only supported for GitLab (configured provider: "{scm_provider}")'
+        }), 400
+
+    scm_api_url = (client.scm_api_url or '').rstrip('/')
+    repository_url = client.repository_url or ''
+    api_key = client.api_key or ''
+
+    if not scm_api_url or not repository_url:
+        return jsonify({'status': 'error', 'message': 'GitLab scm_api_url or repository_url not configured'}), 400
+
+    encoded_path = repository_url.replace('/', '%2F')
+    headers = {'PRIVATE-TOKEN': api_key} if api_key else {}
+
+    try:
+        diff_url = f"{scm_api_url}/projects/{encoded_path}/repository/commits/{sha}/diff"
+        resp = _requests.get(diff_url, headers=headers, timeout=10)
+
+        if not resp.ok:
+            return jsonify({
+                'status': 'error',
+                'message': f'GitLab API error {resp.status_code}: {resp.text[:200]}'
+            }), 502
+
+        diffs = resp.json()
+        return jsonify({'status': 'ok', 'diffs': diffs})
+
+    except _requests.exceptions.ConnectionError as exc:
+        return jsonify({'status': 'error', 'message': f'Cannot reach GitLab: {exc}'}), 502
+    except Exception as exc:
+        logger.error(f"get commit diff error: {exc}", exc_info=True)
+        return jsonify({'status': 'error', 'message': str(exc)}), 500
+
+
+@nac_bp.route('/revert', methods=['POST'])
+def revert_commit():
+    """
+    Orchestrate git revert workflow: create branch → revert commit → create MR.
+    ---
+    tags:
+      - NaC API
+    summary: Revert a commit
+    description: |
+      Creates a revert workflow by:
+      1. Creating a new branch from main
+      2. Reverting the specified commit onto that branch
+      3. Creating a merge request to merge the revert back to main
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - sha
+            - ticket
+            - branch
+          properties:
+            sha:
+              type: string
+              description: Commit SHA to revert
+              example: "abc123def456"
+            ticket:
+              type: string
+              description: Service ticket number
+              example: "INC0012345"
+            branch:
+              type: string
+              description: Branch name for the revert
+              example: "nac-revert-inc0012345-20260708120000"
+    responses:
+      200:
+        description: Revert workflow completed successfully
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: ok
+            branch:
+              type: string
+            mr_iid:
+              type: integer
+            mr_url:
+              type: string
+      400:
+        description: Invalid request or merge conflict
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: error
+            message:
+              type: string
+            conflict:
+              type: boolean
+      502:
+        description: GitLab API error
+    """
+    try:
+        body = request.get_json() or {}
+        sha = body.get('sha', '').strip()
+        ticket = body.get('ticket', '').strip()
+        branch = body.get('branch', '').strip()
+
+        if not sha or not ticket or not branch:
+            return jsonify({
+                'status': 'error',
+                'message': 'sha, ticket, and branch are required'
+            }), 400
+
+        client = get_nac_client()
+        scm_provider = client.scm_provider or ''
+        if scm_provider != 'gitlab':
+            return jsonify({
+                'status': 'error',
+                'message': f'Revert endpoint is only supported for GitLab (configured provider: "{scm_provider}")'
+            }), 400
+
+        scm_api_url = (client.scm_api_url or '').rstrip('/')
+        repository_url = client.repository_url or ''
+        api_key = client.api_key or ''
+
+        if not scm_api_url or not repository_url:
+            return jsonify({'status': 'error', 'message': 'GitLab scm_api_url or repository_url not configured'}), 400
+
+        encoded_path = repository_url.replace('/', '%2F')
+        headers = {'PRIVATE-TOKEN': api_key} if api_key else {}
+
+        # Step 0: Fetch the original commit to get its title
+        logger.info(f"Fetching commit {sha} details")
+        commit_url = f"{scm_api_url}/projects/{encoded_path}/repository/commits/{sha}"
+        commit_resp = _requests.get(commit_url, headers=headers, timeout=10)
+
+        if not commit_resp.ok:
+            return jsonify({
+                'status': 'error',
+                'message': f'Failed to fetch commit details: GitLab API error {commit_resp.status_code}'
+            }), 502
+
+        commit_data = commit_resp.json()
+        commit_title = commit_data.get('title', sha[:8])
+
+        # Step 1: Create branch from main
+        logger.info(f"Creating branch {branch} from main")
+        branch_url = f"{scm_api_url}/projects/{encoded_path}/repository/branches"
+        branch_resp = _requests.post(
+            branch_url,
+            json={'branch': branch, 'ref': 'main'},
+            headers=headers,
+            timeout=10
+        )
+
+        if not branch_resp.ok:
+            return jsonify({
+                'status': 'error',
+                'message': f'Failed to create branch: GitLab API error {branch_resp.status_code}: {branch_resp.text[:200]}'
+            }), 502
+
+        # Step 2: Revert the commit onto the new branch
+        logger.info(f"Reverting commit {sha} onto branch {branch}")
+        revert_url = f"{scm_api_url}/projects/{encoded_path}/repository/commits/{sha}/revert"
+        revert_resp = _requests.post(
+            revert_url,
+            json={'branch': branch},
+            headers=headers,
+            timeout=10
+        )
+
+        if not revert_resp.ok:
+            # Check for merge conflict (400 status)
+            if revert_resp.status_code == 400:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Cannot revert: merge conflict. This must be handled manually.',
+                    'conflict': True
+                }), 400
+
+            return jsonify({
+                'status': 'error',
+                'message': f'Failed to revert commit: GitLab API error {revert_resp.status_code}: {revert_resp.text[:200]}'
+            }), 502
+
+        # Step 3: Create merge request
+        logger.info(f"Creating merge request for branch {branch}")
+        mr_title = f"Revert: [{ticket}] - {commit_title}"
+        mr_description = f"Emergency revert of commit {sha} per service ticket {ticket}.\n\nOriginal commit: {sha}"
+
+        mr_url = f"{scm_api_url}/projects/{encoded_path}/merge_requests"
+        mr_resp = _requests.post(
+            mr_url,
+            json={
+                'source_branch': branch,
+                'target_branch': 'main',
+                'title': mr_title,
+                'description': mr_description
+            },
+            headers=headers,
+            timeout=10
+        )
+
+        if not mr_resp.ok:
+            return jsonify({
+                'status': 'error',
+                'message': f'Failed to create merge request: GitLab API error {mr_resp.status_code}: {mr_resp.text[:200]}'
+            }), 502
+
+        mr_data = mr_resp.json()
+        mr_iid = mr_data.get('iid')
+        mr_web_url = mr_data.get('web_url', '')
+
+        logger.info(f"Revert workflow completed: branch={branch}, MR={mr_iid}")
+        return jsonify({
+            'status': 'ok',
+            'branch': branch,
+            'mr_iid': mr_iid,
+            'mr_url': mr_web_url
+        })
+
+    except _requests.exceptions.ConnectionError as exc:
+        return jsonify({'status': 'error', 'message': f'Cannot reach GitLab: {exc}'}), 502
+    except Exception as exc:
+        logger.error(f"revert commit error: {exc}", exc_info=True)
+        return jsonify({'status': 'error', 'message': str(exc)}), 500
+
+
+@nac_bp.route('/revert/merge', methods=['PUT'])
+def merge_revert():
+    """
+    Merge a revert merge request.
+    ---
+    tags:
+      - NaC API
+    summary: Merge revert MR
+    description: Merges a revert merge request back to main
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - mr_iid
+          properties:
+            mr_iid:
+              type: integer
+              description: Merge request IID to merge
+              example: 42
+    responses:
+      200:
+        description: Merge request merged successfully
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: ok
+            message:
+              type: string
+            merge_commit_sha:
+              type: string
+      400:
+        description: Invalid request or not a GitLab provider
+      502:
+        description: GitLab API error
+    """
+    try:
+        body = request.get_json() or {}
+        mr_iid = body.get('mr_iid')
+
+        if not mr_iid:
+            return jsonify({
+                'status': 'error',
+                'message': 'mr_iid is required'
+            }), 400
+
+        client = get_nac_client()
+        scm_provider = client.scm_provider or ''
+        if scm_provider != 'gitlab':
+            return jsonify({
+                'status': 'error',
+                'message': f'Merge revert endpoint is only supported for GitLab (configured provider: "{scm_provider}")'
+            }), 400
+
+        scm_api_url = (client.scm_api_url or '').rstrip('/')
+        repository_url = client.repository_url or ''
+        api_key = client.api_key or ''
+
+        if not scm_api_url or not repository_url:
+            return jsonify({'status': 'error', 'message': 'GitLab scm_api_url or repository_url not configured'}), 400
+
+        encoded_path = repository_url.replace('/', '%2F')
+        headers = {'PRIVATE-TOKEN': api_key} if api_key else {}
+
+        logger.info(f"Merging revert MR {mr_iid}")
+        merge_url = f"{scm_api_url}/projects/{encoded_path}/merge_requests/{mr_iid}/merge"
+        merge_resp = _requests.put(merge_url, headers=headers, timeout=10)
+
+        if not merge_resp.ok:
+            return jsonify({
+                'status': 'error',
+                'message': f'Failed to merge MR: GitLab API error {merge_resp.status_code}: {merge_resp.text[:200]}'
+            }), 502
+
+        merge_data = merge_resp.json()
+        merge_commit_sha = merge_data.get('merge_commit_sha', '')
+
+        logger.info(f"Revert MR {mr_iid} merged successfully: {merge_commit_sha}")
+        return jsonify({
+            'status': 'ok',
+            'message': 'Merge request merged successfully',
+            'merge_commit_sha': merge_commit_sha
+        })
+
+    except _requests.exceptions.ConnectionError as exc:
+        return jsonify({'status': 'error', 'message': f'Cannot reach GitLab: {exc}'}), 502
+    except Exception as exc:
+        logger.error(f"merge revert error: {exc}", exc_info=True)
+        return jsonify({'status': 'error', 'message': str(exc)}), 500
+

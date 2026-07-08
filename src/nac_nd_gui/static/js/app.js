@@ -323,6 +323,13 @@ function loadPageContent(page, parent) {
             }
         }
 
+        // Initialize revert change workflow
+        if (page === 'revert-change') {
+            if (typeof initRevertWorkflow === 'function') {
+                initRevertWorkflow();
+            }
+        }
+
         // Smooth scroll to top of content
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {

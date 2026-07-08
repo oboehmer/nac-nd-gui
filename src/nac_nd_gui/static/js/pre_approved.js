@@ -555,7 +555,7 @@ function handlePreApprovedMerge() {
     const changeTypeName = paActiveChangeType === 'basic-settings'
         ? 'Basic Interface Settings'
         : 'Access Interface Management';
-    const apply_message = `Pre-Approved ${changeTypeName} via ${paCurrentTicket} (${dirtyRows.length} interface(s) changed)`;
+    const apply_message = `Pre-Approved ${changeTypeName} via ${paCurrentTicket} (${dirtyRows.length} interface(s) changed)\n\nCo-authored-by: Oliver Boehmer <oboehmer@cisco.com>`;
 
     // Disable button + show spinner
     const mergeBtn = document.getElementById('preApprovedMergeBtn');
@@ -812,7 +812,7 @@ function handleApplyToProduction() {
     const changeTypeName = paActiveChangeType === 'basic-settings'
         ? 'Basic Interface Settings'
         : 'Access Interface Management';
-    const apply_message = `Pre-Approved ${changeTypeName} via ${paCurrentTicket}`;
+    const apply_message = `Pre-Approved ${changeTypeName} via ${paCurrentTicket}\n\nCo-authored-by: Oliver Boehmer <oboehmer@cisco.com>`;
 
     applyBtn.disabled = true;
     applyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Applying…';
